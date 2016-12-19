@@ -1,7 +1,12 @@
 #include "client.h"
 
 
-Status Login()
+
+
+
+
+Status Login(char *username, char *password)
 {
+
     return OK;
 }

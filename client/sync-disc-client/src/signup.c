@@ -1,6 +1,9 @@
 #include "client.h"
 
-Status Signup()
+
+
+
+Status Signup(char *username, char *password)
 {
     return OK;
 }

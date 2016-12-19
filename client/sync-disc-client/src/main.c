@@ -12,22 +12,22 @@
 
 #include "client.h"
 
+char username[USERNAME_MAX + 1] = {0};
+char password[PASSWORD_MAX + 1] = {0};
 
 Status main(int argc, char **argv)
 {
 
     int opt_sel;
     /* Prompt and ask for an option */
-    while((opt_sel = optSel()) == ERROR){
-        printf("Error.\n");
-    }
+    opt_sel = optSel();
 
     switch(opt_sel){
     case OP_LOGIN:
-        Login();
+        Login(username, password);
         break;
     case OP_SIGNUP:
-        Signup();
+        Signup(username, password);
         break;
     case OP_QUIT:
         exit(OK);

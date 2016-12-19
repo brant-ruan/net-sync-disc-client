@@ -33,7 +33,7 @@ typedef int Status;
 Status MD5Gen(unsigned char* md5, char* filename);
 Status errHandler(char *func_name, char *err_msg, int exit_flag);
 int optSel();
-Status Login();
-Status Signup();
+Status Login(char* username, char* password);
+Status Signup(char* username, char* password);
 
 #endif // SYNC-DISC-CLIENT_H_INCLUDED
