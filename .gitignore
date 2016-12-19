@@ -1,0 +1,11 @@
+# Dirs
+/config/*
+/disc/*
+/json/*
+/client/sync-disc-client/bin/*
+/client/sync-disc-client/obj/*
+
+# files
+sync-disc-client.cbp
+sync-disc-client.depend
+
