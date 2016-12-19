@@ -1,0 +1,35 @@
+# depslib dependency file v1.0
+1482109698 source:d:\2linux\network\last\project\client\sync-disc-client\main.cpp
+	"sync-disc-client.h"
+
+1482118456 source:d:\2linux\network\last\project\client\sync-disc-client\src\main.cpp
+	"client.h"
+
+1482111561 source:d:\2linux\network\last\project\client\sync-disc-client\src\cjson.c
+	<string.h>
+	<stdio.h>
+	<math.h>
+	<stdlib.h>
+	<float.h>
+	<limits.h>
+	<ctype.h>
+	"cJSON.h"
+
+1482114373 source:d:\2linux\network\last\project\client\sync-disc-client\src\errhandler.c
+	"client.h"
+
+1482114956 source:d:\2linux\network\last\project\client\sync-disc-client\src\md5.c
+	"client.h"
+
+1482122596 source:d:\2linux\network\last\project\client\sync-disc-client\src\optsel.c
+	"client.h"
+
+1482118304 source:d:\2linux\network\last\project\client\sync-disc-client\src\login.c
+	"client.h"
+
+1482118298 source:d:\2linux\network\last\project\client\sync-disc-client\src\signup.c
+	"client.h"
+
+1482120939 source:d:\2linux\network\last\project\client\sync-disc-client\src\main.c
+	"client.h"
+
