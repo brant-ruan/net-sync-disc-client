@@ -5,6 +5,7 @@
 #include "openssl/md5.h"
 #include "cJSON.h"
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 
 /* define */
@@ -30,10 +31,15 @@
 typedef int Status;
 
 /* function definition */
-Status MD5Gen(unsigned char* md5, char* filename);
+Status MD5Str(char *md5, char *str, int str_len);
+Status MD5File(char *md5, char *filename);
 Status errHandler(char *func_name, char *err_msg, int exit_flag);
 int optSel();
+int InputUsername(char *username, int *username_len, void (*Func)(void));
+int InputPassword(char *password, int *password_len, void (*Func)(void));
 Status Login(char* username, char* password);
 Status Signup(char* username, char* password);
+Status errMessage(char *msg);
+Status Identify(char *username, char *password_md5, int username_len);
 
 #endif // SYNC-DISC-CLIENT_H_INCLUDED

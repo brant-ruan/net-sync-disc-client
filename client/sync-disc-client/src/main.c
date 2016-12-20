@@ -12,22 +12,32 @@
 
 #include "client.h"
 
-char username[USERNAME_MAX + 1] = {0};
-char password[PASSWORD_MAX + 1] = {0};
+char username[USERNAME_MAX + 1];
+char password[PASSWORD_MAX + 1];
 
 Status main(int argc, char **argv)
 {
-
     int opt_sel;
+Label_begin:
+    memset(username, 0, USERNAME_MAX + 1);
+    memset(password, 0, PASSWORD_MAX + 1);
     /* Prompt and ask for an option */
     opt_sel = optSel();
 
     switch(opt_sel){
     case OP_LOGIN:
-        Login(username, password);
+        if(Login(username, password) == ERROR){
+            errMessage("[username] or [password] not correct.");
+            getchar();
+            goto Label_begin;
+        }
         break;
     case OP_SIGNUP:
-        Signup(username, password);
+        if(Signup(username, password) == ERROR){
+            errMessage("[username] has been used.");
+            getchar();
+            goto Label_begin;
+        }
         break;
     case OP_QUIT:
         exit(OK);
@@ -36,9 +46,9 @@ Status main(int argc, char **argv)
         break;
     }
 
-    Welcome(username);
+//    Welcome(username);
 
-    getchar();
+//    getchar();
 
 	return OK;
 }

@@ -1,8 +1,9 @@
 #include "client.h"
 
 
-void Prompt()
+void SelPrompt()
 {
+    system("cls");
     printf("\n+---------------------------------------------------------------+");
     printf("\n+                         Net Sync Disc                         +");
     printf("\n+---------------------------------------------------------------+");
@@ -23,11 +24,10 @@ void Prompt()
 int optSel()
 {
     int opt = ERROR;
-    Prompt();
+    SelPrompt();
     while(scanf("%d", &opt) == 0 || (opt != OP_LOGIN && opt != OP_SIGNUP && opt != OP_QUIT)){
-        system("cls");
         fflush(stdin); // to empty wrong input before
-        Prompt();
+        SelPrompt();
     }
 
     return opt;

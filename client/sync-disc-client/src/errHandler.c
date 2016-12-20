@@ -5,6 +5,8 @@
  *  fprintf(stderr, "[%s] %s\n", func_name, err_msg);
  * If exit_flag is enabled, then the program will exit;
  *  else, the function just returns OK.
+ * P.S.
+ ** This function is just used for developers to debug. For the convenient of user, use errMessage **
  */
 Status errHandler(char *func_name, char *err_msg, int exit_flag)
 {
@@ -14,4 +16,16 @@ Status errHandler(char *func_name, char *err_msg, int exit_flag)
         exit(exit_flag);
 
     return exit_flag;
+}
+
+/*
+ * Function:
+ *  This is used to indicate user about errors
+ */
+Status errMessage(char *msg)
+{
+    if(msg)
+        fprintf(stderr, "%s\n", msg);
+
+    return OK;
 }
