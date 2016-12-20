@@ -36,6 +36,8 @@ Status main(int argc, char **argv)
         break;
     }
 
+    Welcome(username);
+
     getchar();
 
 	return OK;
