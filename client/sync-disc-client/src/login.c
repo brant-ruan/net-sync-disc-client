@@ -5,7 +5,7 @@ void LoginPrompt()
     printf("\n+---------------------------------------------------------------+");
     printf("\n+                    Net Sync Disc - Log in                     +");
     printf("\n+---------------------------------------------------------------+");
-    printf("\n+                                                               +");
+    printf("\n+                                                                ");
     printf("\n+");
 }
 
@@ -17,7 +17,8 @@ Status Login(char *username, char *password)
 
     InputUsername(username, &username_len, LoginPrompt);
 
-    InputPassword(password, &password_len, LoginPrompt);
+    if(InputPassword(password, &password_len, LoginPrompt) == ERROR)
+        return ERROR;
 
     char password_md5[MD5_CHAR_LEN + 1];
 

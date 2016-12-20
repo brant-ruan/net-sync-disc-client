@@ -22,10 +22,10 @@ Status errHandler(char *func_name, char *err_msg, int exit_flag)
  * Function:
  *  This is used to indicate user about errors
  */
-Status errMessage(char *msg)
+Status errMessage(const char *msg)
 {
     if(msg)
-        fprintf(stderr, "%s\n", msg);
+        fprintf(stderr, "\n%s\n", msg);
 
     return OK;
 }

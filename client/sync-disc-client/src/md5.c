@@ -4,7 +4,7 @@
  * Function:
  *  calculate MD5 for the content of [filename]
  *  and store the characters of MD5 in [md5] ([md5] must point to
- *  an array with the length of at least MD5_CHR_LEN+1)
+ *  an array with the length of at least MD5_CHAR_LEN+1)
  */
 Status MD5File(char *md5, char *filename)
 {
@@ -47,7 +47,7 @@ Status MD5File(char *md5, char *filename)
  * Function:
  *  calculate MD5 for a string
  *  and store the characters of MD5 in [md5] ([md5] must point to
- *  an array with the length of at least MD5_CHR_LEN+1)
+ *  an array with the length of at least MD5_CAHR_LEN+1)
  */
 Status MD5Str(char *md5, char *str, int str_len)
 {

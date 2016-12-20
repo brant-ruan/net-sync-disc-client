@@ -1,5 +1,5 @@
 #ifndef CLIENT_H_INCLUDED
-#define CIENT_H_INCLUDED
+#define CLIENT_H_INCLUDE
 
 /* include */
 #include "openssl/md5.h"
@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <conio.h> // no such file on *nix
 
 /* define */
 #define ERROR           -1
@@ -39,7 +40,10 @@ int InputUsername(char *username, int *username_len, void (*Func)(void));
 int InputPassword(char *password, int *password_len, void (*Func)(void));
 Status Login(char* username, char* password);
 Status Signup(char* username, char* password);
-Status errMessage(char *msg);
+Status errMessage(const char *msg);
 Status Identify(char *username, char *password_md5, int username_len);
+Status AddUser(char *username, char *password_md5, int username_len);
+
+/* Protocol */
 
 #endif // SYNC-DISC-CLIENT_H_INCLUDED

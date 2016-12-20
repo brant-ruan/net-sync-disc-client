@@ -15,24 +15,30 @@
 	<ctype.h>
 	"cJSON.h"
 
-1482235072 source:d:\2linux\network\last\project\client\sync-disc-client\src\errhandler.c
+1482247633 source:d:\2linux\network\last\project\client\sync-disc-client\src\errhandler.c
 	"client.h"
 
-1482234118 source:d:\2linux\network\last\project\client\sync-disc-client\src\md5.c
+1482238239 source:d:\2linux\network\last\project\client\sync-disc-client\src\md5.c
 	"client.h"
 
 1482235366 source:d:\2linux\network\last\project\client\sync-disc-client\src\optsel.c
 	"client.h"
 
-1482234795 source:d:\2linux\network\last\project\client\sync-disc-client\src\login.c
+1482247559 source:d:\2linux\network\last\project\client\sync-disc-client\src\login.c
 	"client.h"
 
-1482235267 source:d:\2linux\network\last\project\client\sync-disc-client\src\signup.c
+1482247640 source:d:\2linux\network\last\project\client\sync-disc-client\src\signup.c
 	"client.h"
 
-1482235507 source:d:\2linux\network\last\project\client\sync-disc-client\src\main.c
+1482238061 source:d:\2linux\network\last\project\client\sync-disc-client\src\main.c
 	"client.h"
 
-1482235283 source:d:\2linux\network\last\project\client\sync-disc-client\src\network.c
+1482242745 source:d:\2linux\network\last\project\client\sync-disc-client\src\network.c
+	"client.h"
+
+1482247517 source:d:\2linux\network\last\project\client\sync-disc-client\src\askinput.c
+	"client.h"
+
+1482242740 source:d:\2linux\network\last\project\client\sync-disc-client\src\client.c
 	"client.h"
 

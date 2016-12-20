@@ -12,6 +12,9 @@
 
 #include "client.h"
 
+/* put username and password here, not in client.h,
+ * just to make it more clear
+ */
 char username[USERNAME_MAX + 1];
 char password[PASSWORD_MAX + 1];
 
@@ -34,7 +37,7 @@ Label_begin:
         break;
     case OP_SIGNUP:
         if(Signup(username, password) == ERROR){
-            errMessage("[username] has been used.");
+            errMessage("[username] has been used or you canceled signup.");
             getchar();
             goto Label_begin;
         }
@@ -48,7 +51,7 @@ Label_begin:
 
 //    Welcome(username);
 
-//    getchar();
+    getchar();
 
 	return OK;
 }
