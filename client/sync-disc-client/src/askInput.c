@@ -137,6 +137,7 @@ int InputPassword(char *password, int *password_len, void (*Func)(void))
 
         for(i = 0; i < PASSWORD_MAX; i++){
  // here I use getch() to hide the password when the user input
+ // And if you press Ctrl + c here, you can return to the main prompt (optSel)
             if((password[i] = getch()) == '\r'){
                 password[i] = '\0';
                 break;
@@ -164,7 +165,6 @@ int InputPassword(char *password, int *password_len, void (*Func)(void))
             break;
         }
         else{
-            errMessage("");
             errMessage(password_obey);
             getchar();
         }

@@ -51,7 +51,7 @@ Label_begin:
 
 //    Welcome(username);
 
-    getchar();
+//    getchar();
 
 	return OK;
 }
