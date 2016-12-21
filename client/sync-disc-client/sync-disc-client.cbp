@@ -34,6 +34,9 @@
 		</Compiler>
 		<Unit filename="include/cJSON.h" />
 		<Unit filename="include/client.h" />
+		<Unit filename="src/askInput.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="src/cJSON.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -47,6 +50,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="src/md5.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/network.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="src/optSel.c">
