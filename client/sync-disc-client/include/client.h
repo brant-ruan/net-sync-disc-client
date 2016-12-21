@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <conio.h> // no such file on *nix
+#include <time.h>
 
 /* define */
 #define ERROR           -1
@@ -28,8 +29,22 @@
 #define NO_EXIT         0
 #define EXIT            1
 
+#define TIME_STR_LEN    19 // 2016-12-21 08:15:59
+
+#define SEPARATOR       "\r\n"
+#define TERMINATOR      "\r\n\r\n"
+
+#define IP_LEN          15
+
 /* typedef */
 typedef int Status;
+
+/* variable */
+struct logInfo{
+    char time[TIME_STR_LEN + 2]; // "2016-12-21 08:15:59 " (one whitespace is added)
+    char *message;
+    int message_len;
+};
 
 /* function definition */
 Status MD5Str(char *md5, char *str, int str_len);
@@ -43,6 +58,7 @@ Status Signup(char* username, char* password);
 Status errMessage(const char *msg);
 Status Identify(char *username, char *password_md5, int username_len);
 Status AddUser(char *username, char *password_md5, int username_len);
+Status Log(struct logInfo *log_info, char *username);
 
 /* Protocol */
 

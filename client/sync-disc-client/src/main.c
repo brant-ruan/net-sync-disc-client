@@ -18,6 +18,8 @@
 char username[USERNAME_MAX + 1];
 char password[PASSWORD_MAX + 1];
 
+
+
 Status main(int argc, char **argv)
 {
     int opt_sel;

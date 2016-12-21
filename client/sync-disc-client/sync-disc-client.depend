@@ -27,18 +27,22 @@
 1482247559 source:d:\2linux\network\last\project\client\sync-disc-client\src\login.c
 	"client.h"
 
-1482247640 source:d:\2linux\network\last\project\client\sync-disc-client\src\signup.c
+1482248303 source:d:\2linux\network\last\project\client\sync-disc-client\src\signup.c
 	"client.h"
 
-1482247794 source:d:\2linux\network\last\project\client\sync-disc-client\src\main.c
+1482279552 source:d:\2linux\network\last\project\client\sync-disc-client\src\main.c
 	"client.h"
 
-1482242745 source:d:\2linux\network\last\project\client\sync-disc-client\src\network.c
+1482289973 source:d:\2linux\network\last\project\client\sync-disc-client\src\network.c
 	"client.h"
+	<winsock2.h>
 
 1482248156 source:d:\2linux\network\last\project\client\sync-disc-client\src\askinput.c
 	"client.h"
 
 1482242740 source:d:\2linux\network\last\project\client\sync-disc-client\src\client.c
+	"client.h"
+
+1482284502 source:d:\2linux\network\last\project\client\sync-disc-client\src\log.c
 	"client.h"
 

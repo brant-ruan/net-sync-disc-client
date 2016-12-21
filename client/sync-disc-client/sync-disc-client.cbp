@@ -43,6 +43,9 @@
 		<Unit filename="src/errHandler.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="src/log.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="src/login.c">
 			<Option compilerVar="CC" />
 		</Unit>
