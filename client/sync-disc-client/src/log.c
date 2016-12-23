@@ -17,10 +17,20 @@ Status Log(struct logInfo *log_info, char *username)
 
     FILE *fp;
     fp = fopen(log_path, "a");
-    fwrite(log_info->time, sizeof(char), TIME_STR_LEN + 1, fp); // '1' is for the whitespace
+    fwrite(log_info->logtime, sizeof(char), TIME_STR_LEN + 1, fp); // '1' is for the whitespace
 
     fwrite(log_info->message, sizeof(char), log_info->message_len, fp);
     fclose(fp);
+
+    return OK;
+}
+// to generate the time for log
+Status timeGen(char *logtime)
+{
+    time_t ti = time(0);
+    struct tm *t = localtime(&ti);
+    sprintf(logtime, "%04d-%02d-%02d %02d:%02d:%02d ", \
+            t->tm_year + 1900, t->tm_mon, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
 
     return OK;
 }

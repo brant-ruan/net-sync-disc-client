@@ -101,22 +101,24 @@ Status sockConfig(SOCKET *sClient, unsigned short port)
 Status Identify(char *username, char *password_md5, int username_len, SOCKET *sClient, portType *slisten)
 {
     UIDInit();
-    printf("hello\n");
+
     if(sockConfig(sClient, SERVER_MAIN_PORT) == MYERROR){
         errHandler("Identify", "sockConfig error", NO_EXIT);
         WSACleanup();
         return MYERROR;
     }
-    printf("hello\n");
     /* communicate with server */
     char sendbuf[BUF_SIZE] = {0};
+    int sendbuf_len = 0;
     char recvbuf[BUF_SIZE] = {0};
     username[username_len] = 0;
     // A\r\n[username]\r\n[md5(password)]\r\n[UID]\r\n\r\n
     sprintf(sendbuf, "%c%s%s%s%s%s%s%s", PRO_LOGIN, SEPARATOR, \
             username, SEPARATOR, password_md5, SEPARATOR, UID, TERMINATOR);
     char send_flag = 0;
-
+    sendbuf_len = strlen(sendbuf);
+    // write log
+    struct logInfo log;
     int sel;
     fd_set rfd;
     fd_set wfd;
@@ -139,6 +141,10 @@ Status Identify(char *username, char *password_md5, int username_len, SOCKET *sC
                 continue;
             }
             recvbuf[len] = 0;
+            log.message = recvbuf;
+            log.message_len = len;
+            timeGen(log.logtime);
+            Log(&log, username);
             break;
 		}
         if(send_flag == 0 && FD_ISSET(*sClient, &wfd)){
@@ -147,6 +153,10 @@ Status Identify(char *username, char *password_md5, int username_len, SOCKET *sC
                 errHandler("Identify", "send error", NO_EXIT);
                 continue;
             }
+            log.message = sendbuf;
+            log.message_len = sendbuf_len;
+            timeGen(log.logtime);
+            Log(&log, username); // take log
             send_flag = 1;
         }
     }

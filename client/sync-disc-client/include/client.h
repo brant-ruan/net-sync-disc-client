@@ -48,7 +48,7 @@ typedef int Status;
 typedef unsigned short portType;
 /* variable */
 struct logInfo{
-    char time[TIME_STR_LEN + 2]; // "2016-12-21 08:15:59 " (one whitespace is added)
+    char logtime[TIME_STR_LEN + 2]; // "2016-12-21 08:15:59 " (one whitespace is added)
     char *message;
     int message_len;
 };
@@ -66,6 +66,7 @@ Status errMessage(const char *msg);
 Status Identify(char *username, char *password_md5, int username_len, SOCKET *sClient, portType *slisten);
 Status AddUser(char *username, char *password_md5, int username_len, SOCKET *sClient, portType *slisten);
 Status Log(struct logInfo *log_info, char *username);
+Status timeGen(char *time);
 
 /* Protocol */
 #define PRO_LOGIN       'A'
