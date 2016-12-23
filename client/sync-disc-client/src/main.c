@@ -32,7 +32,7 @@ Label_begin:
     /* Prompt and ask for an option */
     opt_sel = optSel();
 
-    SOCKET CTRLsock; // control socket
+    SOCKET CTRLsock, BEATsock, DATAsock; // control socket
     portType slisten;
     switch(opt_sel){
     case OP_LOGIN:

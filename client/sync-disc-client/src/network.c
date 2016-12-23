@@ -11,7 +11,7 @@ const char SEND_OK = 1;
 
 unsigned long nonblock = NONBLOCK;
 
-const char SERVER_IP[IP_LEN + 1] = "192.168.1.110"; // by default
+const char SERVER_IP[IP_LEN + 1] = "192.168.229.222"; // by default
 
 char UID[MD5_CHAR_LEN + 1] = {0};
 
@@ -67,18 +67,29 @@ Status sockConfig(SOCKET *sClient, unsigned short port)
 	sin.sin_port = htons(port);
 	sin.sin_addr.S_un.S_addr = inet_addr(SERVER_IP);
 	fd_set wfd;
+	fd_set rfd;
 	int sel;
+	printf("connect?\n");
     if(connect(*sClient, (struct sockaddr *)&sin, sizeof(sin)) == SOCKET_ERROR){
-        FD_ZERO(&wfd);
-        FD_SET(*sClient, &wfd);
-        sel = select(0, NULL, &wfd, NULL, NULL);
-        if(sel <= 0){
-            errHandler("sockConfig", "connect error", NO_EXIT);
-            closesocket(*sClient);
-            return MYERROR;
+        while(1){
+            FD_ZERO(&wfd);
+            FD_ZERO(&rfd);
+            FD_SET(*sClient, &rfd);
+            FD_SET(*sClient, &wfd);
+            sel = select(0, &rfd, &wfd, NULL, 0);
+            if(sel <= 0){
+                errHandler("sockConfig", "connect error", NO_EXIT);
+                closesocket(*sClient);
+                return MYERROR;
+            }
+            if(FD_ISSET(*sClient, &rfd))
+                printf("rfd ok,but error\n");
+            if(FD_ISSET(*sClient, &wfd))
+                printf("ok\n");
+                break;
         }
     }
-
+    printf("connect-hello\n");
 	return OK;
 }
 
@@ -91,7 +102,7 @@ Status Identify(char *username, char *password_md5, int username_len, SOCKET *sC
 {
     UIDInit();
     printf("hello\n");
-    if(sockConfig(sClient, CTRL_PORT) == MYERROR){
+    if(sockConfig(sClient, SERVER_MAIN_PORT) == MYERROR){
         errHandler("Identify", "sockConfig error", NO_EXIT);
         WSACleanup();
         return MYERROR;
@@ -115,7 +126,7 @@ Status Identify(char *username, char *password_md5, int username_len, SOCKET *sC
         FD_ZERO(&wfd);
         FD_SET(*sClient, &rfd);
         FD_SET(*sClient, &wfd);
-        sel = select(0, &rfd, &wfd, NULL, NULL);
+        sel = select(0, &rfd, &wfd, NULL, 0);
 		if (sel == SOCKET_ERROR) {
 			errHandler("Identify", "select error", NO_EXIT);
 			closesocket(*sClient);
