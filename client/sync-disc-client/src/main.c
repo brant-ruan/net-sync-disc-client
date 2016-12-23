@@ -8,6 +8,9 @@
  * P.S.
  *  - MD5 is not safe now, but we just use it to calculate file completeness
  *  - cJSON is used to store and deliver the information of files and directories
+ *  - MYERROR handle principle:
+ *      - all the MYERROR message are printed in the direct function where
+ *      - MYERROR happens, and return MYERROR
  **/
 
 #include "client.h"
@@ -29,16 +32,18 @@ Label_begin:
     /* Prompt and ask for an option */
     opt_sel = optSel();
 
+    SOCKET CTRLsock; // control socket
+    portType slisten;
     switch(opt_sel){
     case OP_LOGIN:
-        if(Login(username, password) == ERROR){
+        if(Login(username, password, &CTRLsock, &slisten) == MYERROR){
             errMessage("[username] or [password] not correct.");
             getchar();
             goto Label_begin;
         }
         break;
     case OP_SIGNUP:
-        if(Signup(username, password) == ERROR){
+        if(Signup(username, password, &CTRLsock, &slisten) == MYERROR){
             errMessage("[username] has been used or you canceled signup.");
             getchar();
             goto Label_begin;
@@ -55,5 +60,6 @@ Label_begin:
 
 //    getchar();
 
+    WSACleanup();
 	return OK;
 }
