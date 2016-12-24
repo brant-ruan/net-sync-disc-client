@@ -2,9 +2,9 @@
 
 // #pragma comment(lib, "ws2_32.lib")
 
-const portType DATA_PORT = 1500; // data port
-const portType CTRL_PORT = 1501; // control port
-const portType BEAT_PORT = 1502; // heart beat port
+// const portType DATA_PORT = 1500; // data port
+// const portType CTRL_PORT = 1501; // control port
+// const portType BEAT_PORT = 1502; // heart beat port
 const portType SERVER_MAIN_PORT = 10000;
 
 const char SEND_OK = 1;
@@ -96,9 +96,10 @@ Status sockConfig(SOCKET *sClient, unsigned short port)
 /*
  * Function:
  *  communicate with server and identify the user
- * Used by login.c
+ * Used by login.c and signup.c
+ * pro_type is PRO_LOGIN or PRO_SIGNUP
  */
-Status Identify(char *username, char *password_md5, int username_len, SOCKET *sClient, portType *slisten)
+Status Identify(char *username, char *password_md5, int username_len, SOCKET *sClient, portType *slisten, char pro_type)
 {
     UIDInit();
 
@@ -113,7 +114,7 @@ Status Identify(char *username, char *password_md5, int username_len, SOCKET *sC
     char recvbuf[BUF_SIZE] = {0};
     username[username_len] = 0;
     // A\r\n[username]\r\n[md5(password)]\r\n[UID]\r\n\r\n
-    sprintf(sendbuf, "%c%s%s%s%s%s%s%s", PRO_LOGIN, SEPARATOR, \
+    sprintf(sendbuf, "%c%s%s%s%s%s%s%s", pro_type, SEPARATOR, \
             username, SEPARATOR, password_md5, SEPARATOR, UID, TERMINATOR);
     char send_flag = 0;
     sendbuf_len = strlen(sendbuf);
@@ -144,7 +145,7 @@ Status Identify(char *username, char *password_md5, int username_len, SOCKET *sC
             log.message = recvbuf;
             log.message_len = len;
             timeGen(log.logtime);
-            Log(&log, username);
+            Log(&log, username); // c -> s [log]
             break;
 		}
         if(send_flag == 0 && FD_ISSET(*sClient, &wfd)){
@@ -156,33 +157,16 @@ Status Identify(char *username, char *password_md5, int username_len, SOCKET *sC
             log.message = sendbuf;
             log.message_len = sendbuf_len;
             timeGen(log.logtime);
-            Log(&log, username); // take log
+            Log(&log, username); // s -> c [log]
             send_flag = 1;
         }
     }
 // I have not judged whether the recvbuf length is valid...
-    if(recvbuf[0] == PRO_LOGIN && recvbuf[3] == 'Y'){
-        *slisten = atoi(&recvbuf[7]);
+// A\r\nY\r\n
+    if(recvbuf[0] == pro_type && recvbuf[3] == 'Y'){
+        *slisten = atoi(&recvbuf[strlen("A\r\nY\r\n")]);
         return OK;
     }
 
     return ERROR;
-}
-
-/*
- * Function:
- *  ask server to add an account
- * Used by signup.c
- */
-Status AddUser(char *username, char *password_md5, int username_len, SOCKET *sClient, portType *slisten)
-{
-    UIDInit();
-
-    if(sockConfig(sClient, CTRL_PORT) == MYERROR){
-        errHandler("AddUser", "sockConfig error", NO_EXIT);
-        WSACleanup();
-        return MYERROR;
-    }
-
-    return OK;
 }

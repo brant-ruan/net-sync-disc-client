@@ -39,6 +39,8 @@ Label_begin:
         if(Login(username, password, &CTRLsock, &slisten) == MYERROR){
             errMessage("[username] or [password] not correct.");
             getchar();
+            WSACleanup();
+            closesocket(CTRLsock);
             goto Label_begin;
         }
         break;
@@ -46,6 +48,8 @@ Label_begin:
         if(Signup(username, password, &CTRLsock, &slisten) == MYERROR){
             errMessage("[username] has been used or you canceled signup.");
             getchar();
+            WSACleanup();
+            closesocket(CTRLsock);
             goto Label_begin;
         }
         break;
@@ -56,10 +60,13 @@ Label_begin:
         break;
     }
 
-//    Welcome(username);
+    Extra2Sock(&BEATsock, &DATAsock, slisten);
+    WelcomePrompt(username);
 
 //    getchar();
-
+    closesocket(CTRLsock);
+//    closesocket(BEATsock);
+    closesocket(DATAsock);
     WSACleanup();
 	return OK;
 }

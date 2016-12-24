@@ -1,13 +1,5 @@
 #include "client.h"
 
-void LoginPrompt()
-{
-    printf("\n+---------------------------------------------------------------+");
-    printf("\n+                    Net Sync Disc - Log in                     +");
-    printf("\n+---------------------------------------------------------------+");
-    printf("\n+                                                                ");
-    printf("\n+");
-}
 
 Status Login(char *username, char *password, SOCKET *sClient, portType *slisten)
 {
@@ -23,7 +15,7 @@ Status Login(char *username, char *password, SOCKET *sClient, portType *slisten)
 
     MD5Str(password_md5, password, password_len);
 
-    if(Identify(username, password_md5, username_len, sClient, slisten) == MYERROR)
+    if(Identify(username, password_md5, username_len, sClient, slisten, PRO_LOGIN) == MYERROR)
         return MYERROR;
 
     return OK;

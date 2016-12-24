@@ -1,13 +1,5 @@
 #include "client.h"
 
-void SignupPrompt()
-{
-    printf("\n+---------------------------------------------------------------+");
-    printf("\n+                    Net Sync Disc - Sign up                    +");
-    printf("\n+---------------------------------------------------------------+");
-    printf("\n+                                                                ");
-    printf("\n+");
-}
 
 Status Signup(char *username, char *password, SOCKET *sClient, portType *slisten)
 {
@@ -36,7 +28,7 @@ Label_Signup:
 
     MD5Str(password_md5, password, password_len);
 
-    if(AddUser(username, password_md5, username_len, sClient, slisten) == MYERROR)
+    if(Identify(username, password_md5, username_len, sClient, slisten, PRO_SIGNUP) == MYERROR)
         return MYERROR;
 
     return OK;

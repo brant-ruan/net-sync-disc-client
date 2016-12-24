@@ -49,25 +49,36 @@ typedef unsigned short portType;
 /* variable */
 struct logInfo{
     char logtime[TIME_STR_LEN + 2]; // "2016-12-21 08:15:59 " (one whitespace is added)
-    char *message;
-    int message_len;
+    char *message; // point to the message to be logged
+    int message_len; // decide the length of message to be logged, so this number should match the real length of message
 };
 
 /* function definition */
 Status MD5Str(char *md5, char *str, int str_len);
 Status MD5File(char *md5, char *filename);
-Status errHandler(char *func_name, char *err_msg, int exit_flag);
+// -----
 int optSel();
+// -----
 int InputUsername(char *username, int *username_len, void (*Func)(void));
 int InputPassword(char *password, int *password_len, void (*Func)(void));
+// -----
 Status Login(char* username, char* password, SOCKET *sClient, portType *slisten);
 Status Signup(char* username, char* password, SOCKET *sClient, portType *slisten);
+// -----
+Status errHandler(char *func_name, char *err_msg, int exit_flag);
 Status errMessage(const char *msg);
-Status Identify(char *username, char *password_md5, int username_len, SOCKET *sClient, portType *slisten);
-Status AddUser(char *username, char *password_md5, int username_len, SOCKET *sClient, portType *slisten);
+// -----
+Status Identify(char *username, char *password_md5, int username_len, SOCKET *sClient, portType *slisten, char pro_type);
+// -----
 Status Log(struct logInfo *log_info, char *username);
 Status timeGen(char *time);
-
+// -----
+void SignupPrompt();
+void LoginPrompt();
+void SelPrompt();
+void WelcomePrompt(char *username);
+// -----
+Status Extra2Sock(SOCKET *BEATsock, SOCKET *DATAsock, portType slisten);
 /* Protocol */
 #define PRO_LOGIN       'A'
 #define PRO_SIGNUP      'B'

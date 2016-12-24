@@ -1,21 +1,7 @@
 #include "client.h"
 
 
-void SelPrompt()
-{
-    system("cls");
-    printf("\n+---------------------------------------------------------------+");
-    printf("\n+                         Net Sync Disc                         +");
-    printf("\n+---------------------------------------------------------------+");
-    printf("\n+                                                               +");
-    printf("\n+                         %d <-> Log in                          +", OP_LOGIN);
-    printf("\n+                         %d <-> Sign up                         +", OP_SIGNUP);
-    printf("\n+                         %d <-> Quit                            +", OP_QUIT);
-    printf("\n+                                                               +");
-    printf("\n+---------------------------------------------------------------+");
-    printf("\n+");
-    printf("\n+-------> Option: ");
-}
+
 
 /*
  * Function:
