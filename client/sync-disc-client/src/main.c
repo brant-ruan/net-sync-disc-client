@@ -68,18 +68,15 @@ Label_begin:
 
     WelcomePrompt(username);
     char local_path[BUF_SIZE] = {0};
-    // if the user delete his conf by himself, then he or she should
-    // burden the responsibility by himself
-    if(ConfigUser(username) == MYERROR){
+
+    if(ConfigUser(username, local_path) == MYERROR){
         errHandler("main", "ConfigUser error", NO_EXIT);
         goto Label_end;
     }
-    // whether the user binds dir
     if(BindDir(username, local_path) == MYERROR){
         errHandler("main", "BindDir error", NO_EXIT);
         goto Label_end;
     }
-
     if(InitSync(username, &CTRLsock, &DATAsock, local_path) == MYERROR){
         errHandler("main", "InitSync error", NO_EXIT);
         goto Label_end;

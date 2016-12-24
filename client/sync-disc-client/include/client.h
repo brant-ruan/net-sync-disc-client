@@ -10,6 +10,7 @@
 #include <conio.h> // no such file on *nix
 #include <time.h>
 #include <winsock2.h>
+#include <io.h> // what is it?
 //#include <windows.h>
 
 /* define */
@@ -83,7 +84,7 @@ void LoginPrompt();
 void SelPrompt();
 void WelcomePrompt(char *username);
 // -----
-Status ConfigUser(char *username);
+Status ConfigUser(char *username, char *local_path);
 Status BindDir(char *username, char *local_path);
 
 /* Protocol */

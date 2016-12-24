@@ -16,10 +16,10 @@ Status Log(struct logInfo *log_info, char *username)
     strcat(log_path, ".log");
 
     FILE *fp;
-    fp = fopen(log_path, "a");
+    fp = fopen(log_path, "a+");
     fwrite(log_info->logtime, sizeof(char), TIME_STR_LEN + 1, fp); // '1' is for the whitespace
-
     fwrite(log_info->message, sizeof(char), log_info->message_len, fp);
+    fflush(fp);
     fclose(fp);
 
     return OK;
