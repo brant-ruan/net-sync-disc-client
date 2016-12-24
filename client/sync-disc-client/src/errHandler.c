@@ -18,6 +18,8 @@ Status errHandler(char *func_name, char *err_msg, int exit_flag)
     errlog.message_len = strlen(buf);
     timeGen(errlog.logtime);
 
+/* [0#] stand for the username...
+   There is no username for error log, so I use it instead. */
     Log(&errlog, "[0#]");
 
     if(func_name && err_msg)
