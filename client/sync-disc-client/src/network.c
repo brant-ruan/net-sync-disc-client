@@ -174,6 +174,7 @@ Status InitSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *local_
     return OK;
 }
 
+// RTSync - Real Time Sync
 /* log out will happen in this function */
 Status RTSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *local_path)
 {
