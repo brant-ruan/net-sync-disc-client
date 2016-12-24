@@ -20,5 +20,3 @@ Status BindDir(char *username, char *local_path)
     return OK;
 }
 
-
-

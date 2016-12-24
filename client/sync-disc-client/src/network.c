@@ -165,7 +165,7 @@ Status Identify(char *username, char *password_md5, int username_len, SOCKET *sC
         return OK;
     }
 
-    return ERROR;
+    return MYERROR;
 }
 
 /* remember that after InitSync you need set INITSYNC=1 In conf */
