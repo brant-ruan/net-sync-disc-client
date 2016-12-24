@@ -1,8 +1,5 @@
 #include "client.h"
 
-
-
-
 /*
  * Function:
  *  ask for one valid option

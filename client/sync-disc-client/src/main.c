@@ -21,8 +21,6 @@
 char username[USERNAME_MAX + 1];
 char password[PASSWORD_MAX + 1];
 
-
-
 Status main(int argc, char **argv)
 {
     int opt_sel;
@@ -32,8 +30,11 @@ Label_begin:
     /* Prompt and ask for an option */
     opt_sel = optSel();
 
-    SOCKET CTRLsock, BEATsock, DATAsock; // control socket
+    SOCKET CTRLsock;
+    // SOCKET BEATsock;
+    SOCKET DATAsock;
     portType slisten;
+
     switch(opt_sel){
     case OP_LOGIN:
         if(Login(username, password, &CTRLsock, &slisten) == MYERROR){
@@ -59,11 +60,40 @@ Label_begin:
     default:
         break;
     }
+    // configure data socket
+    if(sockConfig(&DATAsock, slisten) == MYERROR){
+        errHandler("main", "ConfigDataSock error", NO_EXIT);
+        goto Label_end;
+    }
 
-    Extra2Sock(&BEATsock, &DATAsock, slisten);
     WelcomePrompt(username);
+    char local_path[BUF_SIZE] = {0};
+    // if the user delete his conf by himself, then he or she should
+    // burden the responsibility by himself
+    if(ConfigUser(username) == MYERROR){
+        errHandler("main", "ConfigUser error", NO_EXIT);
+        goto Label_end;
+    }
+    // whether the user binds dir
+    if(BindDir(username, local_path) == MYERROR){
+        errHandler("main", "BindDir error", NO_EXIT);
+        goto Label_end;
+    }
 
-//    getchar();
+    if(InitSync(username, &CTRLsock, &DATAsock, local_path) == MYERROR){
+        errHandler("main", "InitSync error", NO_EXIT);
+        goto Label_end;
+    }
+
+    /* real time sync */
+    if(RTSync(username, &CTRLsock, &DATAsock, local_path) == MYERROR){
+    /* only when error happens RTSync return MYERROR,
+       or it will keep an iteration until user asks to log out */
+        errHandler("main", "RTSync", NO_EXIT);
+        goto Label_end;
+    }
+
+Label_end:
     closesocket(CTRLsock);
 //    closesocket(BEATsock);
     closesocket(DATAsock);

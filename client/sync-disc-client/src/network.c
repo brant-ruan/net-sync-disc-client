@@ -42,7 +42,7 @@ Status WSAInit(WSADATA *wsaData)
 	return OK;
 }
 
-Status sockConfig(SOCKET *sClient, unsigned short port)
+Status sockConfig(SOCKET *sClient, portType port)
 {
     // initialize WSA
 	WSADATA wsaData;
@@ -77,15 +77,12 @@ Status sockConfig(SOCKET *sClient, unsigned short port)
             FD_SET(*sClient, &rfd);
             FD_SET(*sClient, &wfd);
             sel = select(0, &rfd, &wfd, NULL, 0);
-            if(sel <= 0){
+            if(sel <= 0 || FD_ISSET(*sClient, &rfd)){
                 errHandler("sockConfig", "connect error", NO_EXIT);
                 closesocket(*sClient);
                 return MYERROR;
             }
-            if(FD_ISSET(*sClient, &rfd))
-                printf("rfd ok,but error\n");
             if(FD_ISSET(*sClient, &wfd))
-                printf("ok\n");
                 break;
         }
     }
@@ -169,4 +166,16 @@ Status Identify(char *username, char *password_md5, int username_len, SOCKET *sC
     }
 
     return ERROR;
+}
+
+/* remember that after InitSync you need set INITSYNC=1 In conf */
+Status InitSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *local_path)
+{
+    return OK;
+}
+
+/* log out will happen in this function */
+Status RTSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *local_path)
+{
+    return OK;
 }

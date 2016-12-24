@@ -15,6 +15,8 @@
 /* define */
 #define MYERROR         -1
 #define OK              0
+#define YES             1
+#define NO              0
 
 #define USERNAME_MIN    6
 #define USERNAME_MAX    12
@@ -69,6 +71,9 @@ Status errHandler(char *func_name, char *err_msg, int exit_flag);
 Status errMessage(const char *msg);
 // -----
 Status Identify(char *username, char *password_md5, int username_len, SOCKET *sClient, portType *slisten, char pro_type);
+Status sockConfig(SOCKET *sClient, portType port);
+Status InitSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *local_path);
+Status RTSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *local_path);
 // -----
 Status Log(struct logInfo *log_info, char *username);
 Status timeGen(char *time);
@@ -78,7 +83,9 @@ void LoginPrompt();
 void SelPrompt();
 void WelcomePrompt(char *username);
 // -----
-Status Extra2Sock(SOCKET *BEATsock, SOCKET *DATAsock, portType slisten);
+Status ConfigUser(char *username);
+Status BindDir(char *username, char *local_path);
+
 /* Protocol */
 #define PRO_LOGIN       'A'
 #define PRO_SIGNUP      'B'
