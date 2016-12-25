@@ -3,7 +3,7 @@
 
 /* include */
 #include "openssl/md5.h"
-#include "cJSON.h"
+//#include "cJSON.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -44,7 +44,18 @@
 #define NONBLOCK        1
 #define BLOCK           0
 
-#define BUF_SIZE        255
+#define BUF_SIZE        256
+
+/* Protocol */
+#define PRO_LOGIN       'A'
+#define PRO_SIGNUP      'B'
+#define PRO_LOGOUT      'D'
+#define PRO_BEAT        'E'
+#define PRO_META        'F' // file information
+#define PRO_GET         'G'
+#define PRO_POST        'H'
+#define PRO_DEL         'I'
+#define PRO_RENAME      'J'
 
 /* typedef */
 typedef int Status;
@@ -56,6 +67,15 @@ struct logInfo{
     int message_len; // decide the length of message to be logged, so this number should match the real length of message
 };
 
+struct fileInfo{
+    char filename[BUF_SIZE]; // absolute path relative to the local-bind-dir
+    int whole_size;
+    int current_size;
+    char whole_md5[MD5_CHAR_LEN + 1];
+    char ctime[TIME_STR_LEN + 1];
+    char mtime[TIME_STR_LEN + 1];
+    char padding;
+};
 /* function definition */
 Status MD5Str(char *md5, char *str, int str_len);
 Status MD5File(char *md5, char *filename);
@@ -86,16 +106,5 @@ void WelcomePrompt(char *username);
 // -----
 Status ConfigUser(char *username, char *local_path);
 Status BindDir(char *username, char *local_path);
-
-/* Protocol */
-#define PRO_LOGIN       'A'
-#define PRO_SIGNUP      'B'
-#define PRO_LOGOUT      'D'
-#define PRO_BEAT        'E'
-#define PRO_JSON        'F'
-#define PRO_GET         'G'
-#define PRO_POST        'H'
-#define PRO_DEL         'I'
-#define PRO_RENAME      'J'
 
 #endif // SYNC-DISC-CLIENT_H_INCLUDED

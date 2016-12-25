@@ -32,12 +32,8 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
-		<Unit filename="include/cJSON.h" />
 		<Unit filename="include/client.h" />
 		<Unit filename="src/askInput.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="src/cJSON.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="src/errHandler.c">
