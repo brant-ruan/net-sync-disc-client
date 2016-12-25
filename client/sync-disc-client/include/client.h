@@ -69,13 +69,16 @@ struct logInfo{
 
 struct fileInfo{
     char filename[BUF_SIZE]; // absolute path relative to the local-bind-dir
-    int whole_size;
-    int current_size;
+    int whole_size; // file whole size
+    int current_size; // used during breakpoint transportation
     char whole_md5[MD5_CHAR_LEN + 1];
     char ctime[TIME_STR_LEN + 1];
     char mtime[TIME_STR_LEN + 1];
     char padding;
 };
+
+#define FILE_INFO_SIZE  sizeof(struct fileInfo)
+
 /* function definition */
 Status MD5Str(char *md5, char *str, int str_len);
 Status MD5File(char *md5, char *filename);
