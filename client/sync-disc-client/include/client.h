@@ -54,12 +54,13 @@
 #define PRO_LOGIN       'A'
 #define PRO_SIGNUP      'B'
 #define PRO_LOGOUT      'D'
-#define PRO_BEAT        'E'
+#define PRO_UNBIND      'E' // // unbind local directory
 #define PRO_META        'F' // file information
 #define PRO_GET         'G'
 #define PRO_POST        'H'
 #define PRO_DEL         'I'
 #define PRO_RENAME      'J'
+#define PRO_CHGDIR      'K' // change remote directory
 
 /* typedef */
 typedef int Status;
@@ -78,7 +79,7 @@ struct fileInfo{
     char whole_md5[MD5_CHAR_LEN + 1];
     char ctime[TIME_STR_LEN + 1];
     char mtime[TIME_STR_LEN + 1];
-    char padding;
+    char padding[3];
 };
 
 #define FILE_INFO_SIZE  sizeof(struct fileInfo)
@@ -100,6 +101,7 @@ Status errMessage(const char *msg);
 // -----
 Status Identify(char *username, char *password_md5, int username_len, SOCKET *sClient, portType *slisten, char pro_type);
 Status sockConfig(SOCKET *sClient, portType port);
+Status ShowRemoteDir(char *username, SOCKET *CTRLsock, SOCKET *DATAsock);
 Status InitSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *config__path);
 Status RTSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *config_path);
 // -----
@@ -112,7 +114,9 @@ void SelPrompt();
 void WelcomePrompt(char *username);
 // -----
 Status ConfigUser(char *username, char *config_path);
-Status BindDir(char *config_path);
+Status UnbindDir(char *username, char *config_path);
+Status BindDir(char *username, char *config_path);
 Status IsInitSyncDone(char *config_path);
-Status SetInitSyncDone(char *config_path);
+Status SetInitSyncDone(char *username, char *config_path);
+
 #endif // SYNC-DISC-CLIENT_H_INCLUDED

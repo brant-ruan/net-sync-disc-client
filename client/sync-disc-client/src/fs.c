@@ -22,17 +22,23 @@ Status ConfigUser(char *username, char *config_path)
         fclose(fp);
         return OK;
     }
-
-    errMessage("User config file not exist, and will be created");
+    char message[] = "User config file not exist, and will be created";
+    errMessage(message);
     fp = fopen(config_path, "w");
     fwrite(default_conf, sizeof(char), strlen(default_conf), fp);
     fflush(fp);
     fclose(fp);
 
+    // log
+    struct logInfo log;
+    log.message = message;
+    log.message_len = strlen(message);
+    Log(&log, username);
+
     return OK;
 }
 
-Status BindDir(char *config_path)
+Status BindDir(char *username, char *config_path)
 {
     // \r\n will be handled as \n\n
     FILE *fp;
@@ -75,6 +81,14 @@ Status BindDir(char *config_path)
         fwrite("Y", sizeof(char), 1, fp);
     }
 
+    // log
+    char message[2 * BUF_SIZE] = {0};
+    sprintf(message, "Bind local directory at: %s", bind_path);
+    struct logInfo log;
+    log.message = message;
+    log.message_len = strlen(message);
+    Log(&log, username);
+
     fclose(fp);
     return OK;
 }
@@ -86,7 +100,7 @@ Status IsInitSyncDone(char *config_path)
     fp = fopen(config_path, "r");
     if(fp == NULL){
         errHandler("InitSyncDone", "fopen error", NO_EXIT);
-        return ERROR;
+        return MYERROR;
     }
     // be aware of the double '\n'
     fseek(fp, strlen("LOCALDIR=N\n\nINITSYNC="), SEEK_SET);
@@ -101,27 +115,53 @@ Status IsInitSyncDone(char *config_path)
     return NO;
 }
 
-Status SetInitSyncDone(char *config_path)
+Status SetInitSyncDone(char *username, char *config_path)
 {
     FILE *fp;
     fp = fopen(config_path, "r+");
     if(fp == NULL){
         errHandler("SetInitSyncDone", "fopen error", NO_EXIT);
-        return ERROR;
+        return MYERROR;
     }
     // be aware of the double '\n'
     fseek(fp, strlen("LOCALDIR=N\n\nINITSYNC="), SEEK_SET);
     fwrite("Y", sizeof(char), 1, fp);
 
+
+    // log
+    char message[] = "Initial sync is done";
+    struct logInfo log;
+    log.message = message;
+    log.message_len = strlen(message);
+    Log(&log, username);
+
     fclose(fp);
     return OK;
 }
 
-Status UnbindDir(char *config_path)
+Status UnbindDir(char *username, char *config_path)
 {
-    // LOCALDIR=N
+    if(remove(config_path) == -1){
+        errHandler("UnbindDir", "remove error", NO_EXIT);
+        return MYERROR;
+    }
 
-    // INITSYNC=N
+    FILE *fp;
+    fp = fopen(config_path, "w");
+    if(fp == NULL){
+        errHandler("UnbindDir", "fopen error", NO_EXIT);
+        return MYERROR;
+    }
 
+    fwrite(default_conf, sizeof(char), strlen(default_conf), fp);
+
+    // log
+    char message[] = "Unbind local directory";
+    struct logInfo log;
+    log.message = message;
+    log.message_len = strlen(message);
+    Log(&log, username);
+
+    fclose(fp);
     return OK;
 }

@@ -66,18 +66,22 @@ Label_begin:
         goto Label_end;
     }
 
-    WelcomePrompt(username);
-
     char config_path[BUF_SIZE] = {0};
 
     if(ConfigUser(username, config_path) == MYERROR){
         errHandler("main", "ConfigUser error", NO_EXIT);
         goto Label_end;
     }
-    if(BindDir(config_path) == MYERROR){
+    if(BindDir(username, config_path) == MYERROR){
         errHandler("main", "BindDir error", NO_EXIT);
         goto Label_end;
     }
+
+    if(ShowRemoteDir(username, &CTRLsock, &DATAsock) == MYERROR){
+        errHandler("main", "ShowRemoteDir error", NO_EXIT);
+        goto Label_end;
+    }
+
     if(InitSync(username, &CTRLsock, &DATAsock, config_path) == MYERROR){
         errHandler("main", "InitSync error", NO_EXIT);
         goto Label_end;

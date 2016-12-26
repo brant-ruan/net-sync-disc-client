@@ -165,19 +165,27 @@ Status Identify(char *username, char *password_md5, int username_len, SOCKET *sC
     return MYERROR;
 }
 
+/* ask the server to send its net-disc directory and client will show it */
+Status ShowRemoteDir(char *username, SOCKET *CTRLsock, SOCKET *DATAsock)
+{
+
+    return OK;
+}
+
 /* remember that after InitSync you need set INITSYNC=1 In conf */
 Status InitSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *config_path)
 {
     // if Initial sync has been done , then return directly
     Status done_flag = IsInitSyncDone(config_path);
-    if(done_flag == ERROR){
+    if(done_flag == MYERROR){
         errHandler("InitSync", "InitSyncDone error", NO_EXIT);
-        return ERROR;
+        return MYERROR;
     }
     else if(done_flag == YES)
         return OK;
 
-//    struct fileInfo file_info;
+    // from here, initial sync will process
+    struct fileInfo file_info;
 
     // Firstly, client should generate a (filename,md5) list as ./metadata/username-list.data
 
