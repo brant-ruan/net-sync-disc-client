@@ -177,7 +177,7 @@ Status InitSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *config
     else if(done_flag == YES)
         return OK;
 
-    struct fileInfo file_info;
+//    struct fileInfo file_info;
 
     // Firstly, client should generate a (filename,md5) list as ./metadata/username-list.data
 

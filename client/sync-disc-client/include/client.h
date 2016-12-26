@@ -114,4 +114,5 @@ void WelcomePrompt(char *username);
 Status ConfigUser(char *username, char *config_path);
 Status BindDir(char *config_path);
 Status IsInitSyncDone(char *config_path);
+Status SetInitSyncDone(char *config_path);
 #endif // SYNC-DISC-CLIENT_H_INCLUDED

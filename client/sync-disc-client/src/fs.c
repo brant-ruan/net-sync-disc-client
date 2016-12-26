@@ -101,9 +101,19 @@ Status IsInitSyncDone(char *config_path)
     return NO;
 }
 
-Status SetInitSyncDone(char *username, char *config_path)
+Status SetInitSyncDone(char *config_path)
 {
+    FILE *fp;
+    fp = fopen(config_path, "r+");
+    if(fp == NULL){
+        errHandler("SetInitSyncDone", "fopen error", NO_EXIT);
+        return ERROR;
+    }
+    // be aware of the double '\n'
+    fseek(fp, strlen("LOCALDIR=N\n\nINITSYNC="), SEEK_SET);
+    fwrite("Y", sizeof(char), 1, fp);
 
+    fclose(fp);
     return OK;
 }
 
