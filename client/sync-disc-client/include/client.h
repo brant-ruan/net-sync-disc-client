@@ -16,8 +16,9 @@
 /* define */
 #define MYERROR         -1
 #define OK              0
+// YES/NO should be different with MYERROR/OK
 #define YES             1
-#define NO              0
+#define NO              2
 
 #define USERNAME_MIN    6
 #define USERNAME_MAX    12
@@ -45,6 +46,9 @@
 #define BLOCK           0
 
 #define BUF_SIZE        256
+
+// when sync, each time 16kb data is sent
+#define SEND_SLICE_SIZE 16 * 1024
 
 /* Protocol */
 #define PRO_LOGIN       'A'
@@ -96,8 +100,8 @@ Status errMessage(const char *msg);
 // -----
 Status Identify(char *username, char *password_md5, int username_len, SOCKET *sClient, portType *slisten, char pro_type);
 Status sockConfig(SOCKET *sClient, portType port);
-Status InitSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *local_path);
-Status RTSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *local_path);
+Status InitSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *config__path);
+Status RTSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *config_path);
 // -----
 Status Log(struct logInfo *log_info, char *username);
 Status timeGen(char *time);
@@ -107,7 +111,7 @@ void LoginPrompt();
 void SelPrompt();
 void WelcomePrompt(char *username);
 // -----
-Status ConfigUser(char *username, char *local_path);
-Status BindDir(char *username, char *local_path);
-
+Status ConfigUser(char *username, char *config_path);
+Status BindDir(char *config_path);
+Status IsInitSyncDone(char *config_path);
 #endif // SYNC-DISC-CLIENT_H_INCLUDED

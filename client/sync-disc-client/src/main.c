@@ -67,23 +67,24 @@ Label_begin:
     }
 
     WelcomePrompt(username);
-    char local_path[BUF_SIZE] = {0};
 
-    if(ConfigUser(username, local_path) == MYERROR){
+    char config_path[BUF_SIZE] = {0};
+
+    if(ConfigUser(username, config_path) == MYERROR){
         errHandler("main", "ConfigUser error", NO_EXIT);
         goto Label_end;
     }
-    if(BindDir(username, local_path) == MYERROR){
+    if(BindDir(config_path) == MYERROR){
         errHandler("main", "BindDir error", NO_EXIT);
         goto Label_end;
     }
-    if(InitSync(username, &CTRLsock, &DATAsock, local_path) == MYERROR){
+    if(InitSync(username, &CTRLsock, &DATAsock, config_path) == MYERROR){
         errHandler("main", "InitSync error", NO_EXIT);
         goto Label_end;
     }
 
     /* real time sync */
-    if(RTSync(username, &CTRLsock, &DATAsock, local_path) == MYERROR){
+    if(RTSync(username, &CTRLsock, &DATAsock, config_path) == MYERROR){
     /* only when error happens RTSync return MYERROR,
        or it will keep an iteration until user asks to log out */
         errHandler("main", "RTSync", NO_EXIT);
@@ -93,8 +94,8 @@ Label_begin:
 
 Label_end:
     closesocket(CTRLsock);
-//    closesocket(BEATsock);
     closesocket(DATAsock);
     WSACleanup();
+
 	return OK;
 }

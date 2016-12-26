@@ -2,12 +2,9 @@
 
 // #pragma comment(lib, "ws2_32.lib")
 
-// const portType DATA_PORT = 1500; // data port
-// const portType CTRL_PORT = 1501; // control port
-// const portType BEAT_PORT = 1502; // heart beat port
 const portType SERVER_MAIN_PORT = 10000;
 
-const char SEND_OK = 1;
+// const char SEND_OK = 1;
 
 unsigned long nonblock = NONBLOCK;
 
@@ -169,14 +166,36 @@ Status Identify(char *username, char *password_md5, int username_len, SOCKET *sC
 }
 
 /* remember that after InitSync you need set INITSYNC=1 In conf */
-Status InitSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *local_path)
+Status InitSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *config_path)
 {
+    // if Initial sync has been done , then return directly
+    Status done_flag = IsInitSyncDone(config_path);
+    if(done_flag == ERROR){
+        errHandler("InitSync", "InitSyncDone error", NO_EXIT);
+        return ERROR;
+    }
+    else if(done_flag == YES)
+        return OK;
+
+    struct fileInfo file_info;
+
+    // Firstly, client should generate a (filename,md5) list as ./metadata/username-list.data
+
+    // Before the normal transportation, client should check whether there remains a file named as [username-remain.data] in ./metadata/
+    // if there is, that means the last file it received last time is incomplete because of network problems,
+    // so it will ask the server to provide the rest of that file
+    // SERVER WILL ALSO DO THIS JOB
+
+    // if the file size is 0, then ignore it
+
+
     return OK;
 }
 
 // RTSync - Real Time Sync
 /* log out will happen in this function */
-Status RTSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *local_path)
+Status RTSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *config_path)
 {
+
     return OK;
 }

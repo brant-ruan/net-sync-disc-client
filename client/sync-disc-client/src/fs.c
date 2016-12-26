@@ -12,15 +12,19 @@ char default_conf[] = "LOCALDIR=N\nINITSYNC=N\nPATH=";
    so you do not need to use "\r\n"; just use '\n'
  */
 
-Status ConfigUser(char *username, char *path)
+Status ConfigUser(char *username, char *config_path)
 {
-    sprintf(path, "./config/%s", username);
+    sprintf(config_path, "./config/%s.conf", username);
     FILE *fp;
-    fp = fopen(path, "r");
-    if(fp == NULL){
-        errMessage("User config file not exist, and will be created");
+    fp = fopen(config_path, "r");
+
+    if(fp != NULL){ // already exist
+        fclose(fp);
+        return OK;
     }
-    fp = fopen(path, "w");
+
+    errMessage("User config file not exist, and will be created");
+    fp = fopen(config_path, "w");
     fwrite(default_conf, sizeof(char), strlen(default_conf), fp);
     fflush(fp);
     fclose(fp);
@@ -28,11 +32,11 @@ Status ConfigUser(char *username, char *path)
     return OK;
 }
 
-Status BindDir(char *username, char *path)
+Status BindDir(char *config_path)
 {
     // \r\n will be handled as \n\n
     FILE *fp;
-    fp = fopen(path, "r+");
+    fp = fopen(config_path, "r+");
     char bind_path[BUF_SIZE] = {0};
     char flag[2] = {0};
     int localdir_len = strlen("LOCALDIR=");
@@ -75,3 +79,39 @@ Status BindDir(char *username, char *path)
     return OK;
 }
 
+/* Check whether the Initial sync has been done */
+Status IsInitSyncDone(char *config_path)
+{
+    FILE *fp;
+    fp = fopen(config_path, "r");
+    if(fp == NULL){
+        errHandler("InitSyncDone", "fopen error", NO_EXIT);
+        return ERROR;
+    }
+    // be aware of the double '\n'
+    fseek(fp, strlen("LOCALDIR=N\n\nINITSYNC="), SEEK_SET);
+    char temp[2] = {0};
+    fread(temp, sizeof(char), 1, fp);
+    if(temp[0] == 'Y'){
+        fclose(fp);
+        return YES;
+    }
+
+    fclose(fp);
+    return NO;
+}
+
+Status SetInitSyncDone(char *username, char *config_path)
+{
+
+    return OK;
+}
+
+Status UnbindDir(char *config_path)
+{
+    // LOCALDIR=N
+
+    // INITSYNC=N
+
+    return OK;
+}
