@@ -206,7 +206,18 @@ Status TransportRemoteDir(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, ch
     while(1){
         FD_ZERO(&rfd);
         FD_ZERO(&wfd);
-        FD_SET(fp, &wfd);
+/*
+        FD_SET(fp, &wfd); // is it correct?
+        On Windows, fd_set is
+
+typedef struct fd_set {
+  u_int  fd_count;
+  SOCKET fd_array[FD_SETSIZE];
+} fd_set;
+
+    So it seems that FILE *fp is not the same as SOCKET type...
+    So you can't use select() for FILE* fp?
+*/
         FD_SET(*CTRLsock, &rfd);
         FD_SET(*CTRLsock, &wfd);
         FD_SET(*DATAsock, &rfd);
