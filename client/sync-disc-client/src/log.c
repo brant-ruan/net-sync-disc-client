@@ -19,7 +19,7 @@ Status timeGen(char *logtime)
  *  write logs into user's log file
  *  mainly used by network.c
  */
-Status Log(struct logInfo *log_info, char *username)
+Status Log(char *message, char *username)
 {
     char log_path[LOG_PATH_LEN + 1] = "./log/";
     if(username)
@@ -28,11 +28,12 @@ Status Log(struct logInfo *log_info, char *username)
 
     FILE *fp;
     fp = fopen(log_path, "a+");
-
-    timeGen(log_info->logtime);
-
-    fwrite(log_info->logtime, sizeof(char), TIME_STR_LEN + 1, fp); // '1' is for the whitespace
-    fwrite(log_info->message, sizeof(char), log_info->message_len, fp);
+    struct logInfo log_info;
+    log_info.message = message;
+    timeGen(log_info.logtime);
+    log_info.message_len = strlen(log_info.message);
+    fwrite(log_info.logtime, sizeof(char), TIME_STR_LEN + 1, fp); // '1' is for the whitespace
+    fwrite(log_info.message, sizeof(char), log_info.message_len, fp);
     fflush(fp);
     fclose(fp);
 

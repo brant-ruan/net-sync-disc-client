@@ -65,6 +65,7 @@
 /* typedef */
 typedef int Status;
 typedef unsigned short portType;
+typedef unsigned int fileSizeType; //
 /* variable */
 struct logInfo{
     char logtime[TIME_STR_LEN + 2]; // "2016-12-21 08:15:59 " (one whitespace is added)
@@ -99,10 +100,11 @@ Status errMessage(const char *msg);
 Status Identify(char *username, char *password_md5, int username_len, SOCKET *sClient, portType *slisten, char pro_type);
 Status sockConfig(SOCKET *sClient, portType port);
 Status ShowRemoteDir(char *username, SOCKET *CTRLsock, SOCKET *DATAsock);
+Status TransportRemoteDir(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *remote_meta_path);
 Status InitSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *config__path);
 Status RTSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *config_path);
 // -----
-Status Log(struct logInfo *log_info, char *username);
+Status Log(char *message, char *username);
 Status timeGen(char *time);
 // -----
 void SignupPrompt();
@@ -116,4 +118,5 @@ Status BindDir(char *username, char *config_path);
 Status IsInitSyncDone(char *config_path);
 Status SetInitSyncDone(char *username, char *config_path);
 Status LocalMetaGen(char *username, char *config_path);
+Status DisplayFileInfo(char *remote_meta_path);
 #endif // SYNC-DISC-CLIENT_H_INCLUDED

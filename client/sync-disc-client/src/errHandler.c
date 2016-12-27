@@ -10,16 +10,13 @@
  */
 Status errHandler(char *func_name, char *err_msg, int exit_flag)
 {
-    struct logInfo errlog;
     char buf[BUF_SIZE] = {0};
 
     sprintf(buf, "[%s] %s\n", func_name, err_msg);
-    errlog.message = buf;
-    errlog.message_len = strlen(buf);
 
 /* [0#] stand for the username...
    There is no username for error log, so I use it instead. */
-    Log(&errlog, "__error__");
+    Log(buf, "__error__");
 
     if(func_name && err_msg)
         fprintf(stderr, "%s", buf);

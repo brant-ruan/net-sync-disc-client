@@ -30,10 +30,7 @@ Status ConfigUser(char *username, char *config_path)
     fclose(fp);
 
     // log
-    struct logInfo log;
-    log.message = message;
-    log.message_len = strlen(message);
-    Log(&log, username);
+    Log(message, username);
 
     return OK;
 }
@@ -84,10 +81,7 @@ Status BindDir(char *username, char *config_path)
     // log
     char message[2 * BUF_SIZE] = {0};
     sprintf(message, "Bind local directory at: %s", bind_path);
-    struct logInfo log;
-    log.message = message;
-    log.message_len = strlen(message);
-    Log(&log, username);
+    Log(message, username);
 
     fclose(fp);
     return OK;
@@ -129,11 +123,7 @@ Status SetInitSyncDone(char *username, char *config_path)
 
 
     // log
-    char message[] = "Initial sync is done";
-    struct logInfo log;
-    log.message = message;
-    log.message_len = strlen(message);
-    Log(&log, username);
+    Log("Initial sync is done", username);
 
     fclose(fp);
     return OK;
@@ -141,7 +131,7 @@ Status SetInitSyncDone(char *username, char *config_path)
 
 Status UnbindDir(char *username, char *config_path)
 {
-    if(remove(config_path) == -1){
+    if(unlink(config_path) == -1){
         errHandler("UnbindDir", "remove error", NO_EXIT);
         return MYERROR;
     }
@@ -156,11 +146,7 @@ Status UnbindDir(char *username, char *config_path)
     fwrite(default_conf, sizeof(char), strlen(default_conf), fp);
 
     // log
-    char message[] = "Unbind local directory";
-    struct logInfo log;
-    log.message = message;
-    log.message_len = strlen(message);
-    Log(&log, username);
+    Log("Unbind local directory", username);
 
     fclose(fp);
     return OK;
@@ -170,5 +156,10 @@ Status UnbindDir(char *username, char *config_path)
 Status LocalMetaGen(char *username, char *config_path)
 {
 
+    return OK;
+}
+
+Status DisplayFileInfo(char *remote_meta_path)
+{
     return OK;
 }
