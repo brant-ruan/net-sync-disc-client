@@ -165,3 +165,10 @@ Status UnbindDir(char *username, char *config_path)
     fclose(fp);
     return OK;
 }
+
+/* generate a meta-data file in ./local-meta/[username].meta */
+Status LocalMetaGen(char *username, char *config_path)
+{
+
+    return OK;
+}

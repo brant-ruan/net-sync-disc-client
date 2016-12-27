@@ -74,11 +74,8 @@ struct logInfo{
 
 struct fileInfo{
     char filename[BUF_SIZE]; // absolute path relative to the local-bind-dir
-    int whole_size; // file whole size
-    int current_size; // used during breakpoint transportation
-    char whole_md5[MD5_CHAR_LEN + 1];
-    char ctime[TIME_STR_LEN + 1];
-    char mtime[TIME_STR_LEN + 1];
+    int filesize; // file whole size
+    char md5[MD5_CHAR_LEN + 1];
     char padding[3];
 };
 
@@ -118,5 +115,5 @@ Status UnbindDir(char *username, char *config_path);
 Status BindDir(char *username, char *config_path);
 Status IsInitSyncDone(char *config_path);
 Status SetInitSyncDone(char *username, char *config_path);
-
+Status LocalMetaGen(char *username, char *config_path);
 #endif // SYNC-DISC-CLIENT_H_INCLUDED
