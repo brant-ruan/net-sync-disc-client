@@ -67,7 +67,7 @@ Label_begin:
     }
 
     char config_path[BUF_SIZE] = {0};
-
+    char remote_meta_path[BUF_SIZE] = {0};
     if(ConfigUser(username, config_path) == MYERROR){
         errHandler("main", "ConfigUser error", NO_EXIT);
         goto Label_end;
@@ -77,12 +77,12 @@ Label_begin:
         goto Label_end;
     }
 
-    if(ShowRemoteDir(username, &CTRLsock, &DATAsock) == MYERROR){
+    if(ShowRemoteDir(username, &CTRLsock, &DATAsock, remote_meta_path) == MYERROR){
         errHandler("main", "ShowRemoteDir error", NO_EXIT);
         goto Label_end;
     }
 
-    if(InitSync(username, &CTRLsock, &DATAsock, config_path) == MYERROR){
+    if(InitSync(username, &CTRLsock, &DATAsock, config_path, remote_meta_path) == MYERROR){
         errHandler("main", "InitSync error", NO_EXIT);
         goto Label_end;
     }
@@ -97,6 +97,7 @@ Label_begin:
 
 
 Label_end:
+    unlink(remote_meta_path);
     closesocket(CTRLsock);
     closesocket(DATAsock);
     WSACleanup();

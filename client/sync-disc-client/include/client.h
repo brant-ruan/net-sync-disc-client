@@ -99,9 +99,9 @@ Status errMessage(const char *msg);
 // -----
 Status Identify(char *username, char *password_md5, int username_len, SOCKET *sClient, portType *slisten, char pro_type);
 Status sockConfig(SOCKET *sClient, portType port);
-Status ShowRemoteDir(char *username, SOCKET *CTRLsock, SOCKET *DATAsock);
+Status ShowRemoteDir(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *remote_meta_path);
 Status TransportRemoteDir(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *remote_meta_path);
-Status InitSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *config__path);
+Status InitSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *config__path, char *remote_meta_path);
 Status RTSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *config_path);
 // -----
 Status Log(char *message, char *username);
@@ -110,7 +110,7 @@ Status timeGen(char *time);
 void SignupPrompt();
 void LoginPrompt();
 void SelPrompt();
-void WelcomePrompt(char *username);
+void DiscDirPrompt(char* username);
 // -----
 Status ConfigUser(char *username, char *config_path);
 Status UnbindDir(char *username, char *config_path);
@@ -118,5 +118,5 @@ Status BindDir(char *username, char *config_path);
 Status IsInitSyncDone(char *config_path);
 Status SetInitSyncDone(char *username, char *config_path);
 Status LocalMetaGen(char *username, char *config_path);
-Status DisplayFileInfo(char *remote_meta_path);
+Status DisplayFileInfo(char *username, char *remote_meta_path);
 #endif // SYNC-DISC-CLIENT_H_INCLUDED

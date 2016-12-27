@@ -159,7 +159,23 @@ Status LocalMetaGen(char *username, char *config_path)
     return OK;
 }
 
-Status DisplayFileInfo(char *remote_meta_path)
+Status DisplayFileInfo(char *username, char *remote_meta_path)
 {
+    FILE *fp;
+    struct fileInfo meta_file;
+
+    fp = fopen(remote_meta_path, "r");
+    if(fp == NULL){
+        errHandler("DisplayFileInfo", "fopen error", NO_EXIT);
+        return MYERROR;
+    }
+
+    DiscDirPrompt(username); // Give a prompt
+
+    while(fread(&meta_file, sizeof(char), FILE_INFO_SIZE, fp) != 0){
+        fprintf(stdout, "+\n+---> %s - %d bytes - md5[%s]\n", meta_file.filename, meta_file.filesize, meta_file.md5);
+    }
+
+    fclose(fp);
     return OK;
 }

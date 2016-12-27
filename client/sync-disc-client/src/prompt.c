@@ -36,7 +36,11 @@ void SelPrompt()
     printf("\n+-------> Option: ");
 }
 
-void WelcomePrompt(char* username)
+void DiscDirPrompt(char* username)
 {
-    printf("Welcome, %s", username);
+    system("cls");
+    printf("\n+---------------------------------------------------------------+");
+    printf("\n+                         Net Sync Disc                         +");
+    printf("\n+---------------------------------------------------------------+");
+    printf("\n+-------> Welcome, %s :)\n", username);
 }

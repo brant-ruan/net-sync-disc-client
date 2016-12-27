@@ -158,9 +158,8 @@ Status Identify(char *username, char *password_md5, int username_len, SOCKET *sC
 }
 
 /* ask the server to send its net-disc directory and client will show it */
-Status ShowRemoteDir(char *username, SOCKET *CTRLsock, SOCKET *DATAsock)
+Status ShowRemoteDir(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *remote_meta_path)
 {
-    char remote_meta_path[BUF_SIZE] = {0};
     sprintf(remote_meta_path, "./remote-meta/%s.meta", username);
     unlink(remote_meta_path); // if the file already exists, unlink it
 
@@ -169,7 +168,7 @@ Status ShowRemoteDir(char *username, SOCKET *CTRLsock, SOCKET *DATAsock)
         return MYERROR;
     }
 
-    if(DisplayFileInfo(remote_meta_path) == MYERROR){
+    if(DisplayFileInfo(username, remote_meta_path) == MYERROR){
         errHandler("ShowRemoteDir", "DisplayFileInfo error", NO_EXIT);
         return MYERROR;
     }
@@ -216,7 +215,7 @@ typedef struct fd_set {
 } fd_set;
 
     So it seems that FILE *fp is not the same as SOCKET type...
-    So you can't use select() for FILE* fp?
+    So you can't use select() for FILE* fp (Windows is not linux)
 */
         FD_SET(*CTRLsock, &rfd);
         FD_SET(*CTRLsock, &wfd);
@@ -272,7 +271,7 @@ typedef struct fd_set {
                     recv_already_len += recv_write_len;
                 }
             }
-            if((flag & SEND_REQUEST) && (flag & RECV_ANSWER) && FD_ISSET(fp, &wfd)){
+            if((flag & SEND_REQUEST) && (flag & RECV_ANSWER)){
                 if(write_already_len < recv_meta_size && recv_write_len > 0){
                     len = fwrite(recvbuf + write_ptr, sizeof(char), recv_write_len, fp);
                     fflush(fp);
@@ -289,11 +288,13 @@ typedef struct fd_set {
         }
     }
     fclose(fp);
+    Log("Receive meta-data from server - OK", username);;
+
     return OK;
 }
 
 /* remember that after InitSync you need set INITSYNC=1 In conf */
-Status InitSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *config_path)
+Status InitSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *config_path, char *remote_meta_path)
 {
     // if Initial sync has been done , then return directly
     Status done_flag = IsInitSyncDone(config_path);
