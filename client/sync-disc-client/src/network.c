@@ -158,12 +158,13 @@ Status Identify(char *username, char *password_md5, int username_len, SOCKET *sC
 }
 
 /* ask the server to send its net-disc directory and client will show it */
-Status ShowRemoteDir(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *remote_meta_path)
+Status ShowRemoteDir(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, \
+                     SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *remote_meta_path)
 {
     sprintf(remote_meta_path, "./remote-meta/%s.meta", username);
     unlink(remote_meta_path); // if the file already exists, unlink it
 
-    if(TransportRemoteDir(username, CTRLsock, DATAsock, remote_meta_path) == MYERROR){
+    if(TransportRemoteDir(username, CTRLsock_send, DATAsock_send, CTRLsock_recv, DATAsock_recv, remote_meta_path) == MYERROR){
         errHandler("ShowRemoteDir", "TransportRemoteDir error", NO_EXIT);
         return MYERROR;
     }
@@ -177,7 +178,8 @@ Status ShowRemoteDir(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *r
 }
 
 /* client ask server to send file meta data and store it into a file */
-Status TransportRemoteDir(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *remote_meta_path)
+Status TransportRemoteDir(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, \
+                          SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *remote_meta_path)
 {
     const char SEND_REQUEST = 1;
     const char RECV_ANSWER  = 2;
@@ -217,9 +219,9 @@ typedef struct fd_set {
     So it seems that FILE *fp is not the same as SOCKET type...
     So you can't use select() for FILE* fp (Windows is not linux)
 */
-        FD_SET(*CTRLsock, &rfd);
-        FD_SET(*CTRLsock, &wfd);
-        FD_SET(*DATAsock, &rfd);
+        FD_SET(*CTRLsock_send, &wfd);
+        FD_SET(*CTRLsock_recv, &rfd);
+        FD_SET(*DATAsock_recv, &rfd);
         sel = select(0, &rfd, &wfd, NULL, 0);
 		if (sel == SOCKET_ERROR) {
 			errHandler("TransportRemoteDir", "select error", NO_EXIT);
@@ -227,9 +229,9 @@ typedef struct fd_set {
 			return MYERROR;
 		}
         if(sel > 0){
-            if(FD_ISSET(*CTRLsock, &wfd)){
+            if(FD_ISSET(*CTRLsock_send, &wfd)){
                 if(!(flag & SEND_REQUEST)){ // send protocol request
-                    len = send(*CTRLsock, sendbuf, strlen(sendbuf), 0);
+                    len = send(*CTRLsock_send, sendbuf, strlen(sendbuf), 0);
                     if(len == SOCKET_ERROR){
                         errHandler("TransportRemoteDir", "send error", NO_EXIT);
                         fclose(fp);
@@ -239,9 +241,9 @@ typedef struct fd_set {
                     flag |= SEND_REQUEST;
                 }
             }
-            if(FD_ISSET(*CTRLsock, &rfd)){
+            if(FD_ISSET(*CTRLsock_recv, &rfd)){
                 if((flag & SEND_REQUEST) && !(flag & RECV_ANSWER)){ // receive protocol answer
-                    len = recv(*CTRLsock, recvbuf, BUF_SIZE - 1, 0);
+                    len = recv(*CTRLsock_recv, recvbuf, BUF_SIZE - 1, 0);
                     if(len == SOCKET_ERROR){
                         errHandler("TransportRemoteDir", "recv error", NO_EXIT);
                         fclose(fp);
@@ -260,9 +262,9 @@ typedef struct fd_set {
                     flag |= RECV_ANSWER;
                 }
             }
-            if((flag & SEND_REQUEST) && (flag & RECV_ANSWER) && FD_ISSET(*DATAsock, &rfd)){
+            if((flag & SEND_REQUEST) && (flag & RECV_ANSWER) && FD_ISSET(*DATAsock_recv, &rfd)){
                 if(recv_already_len < recv_meta_size && recv_write_len == 0){
-                    recv_write_len = recv(*DATAsock, recvbuf, BUF_SIZE, 0);
+                    recv_write_len = recv(*DATAsock_recv, recvbuf, BUF_SIZE, 0);
                     if(recv_write_len == SOCKET_ERROR){
                         errHandler("TransportRemoteDir", "recv error", NO_EXIT);
                         fclose(fp);
@@ -294,7 +296,7 @@ typedef struct fd_set {
 }
 
 /* remember that after InitSync you need set INITSYNC=1 In conf */
-Status InitSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *config_path, char *remote_meta_path)
+Status InitSync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *config_path, char *remote_meta_path)
 {
     // if Initial sync has been done , then return directly
     Status done_flag = IsInitSyncDone(config_path);
@@ -306,16 +308,33 @@ Status InitSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *config
         return OK;
 
     // from here, initial sync will process
-    struct fileInfo file_info;
+    // check whether there is ./temp/username.meta
+    // if it exists, then ask server to send it
+    char CLIENT_TEMP_REMAIN = 1;
+    char flag = 0;
+    struct fileInfo client_file_info;
+    char tempfile[BUF_SIZE] = {0};
+    char tempfile_info[BUF_SIZE] = {0};
+    sprintf(tempfile, "./temp/%s.temp", username);
+    sprintf(tempfile_info, "./temp/%s.temp.info", username);
+    done_flag = ClientTempRemain(username, &client_file_info, tempfile, tempfile_info);
+    if(ClientTempRemain(username, &client_file_info, tempfile, tempfile_info) == MYERROR){
+        errHandler("InitSync", "ClientTempRemain error", NO_EXIT);
+        return MYERROR;
+    }
+    if(ClientTempRemain(username, &client_file_info, tempfile, tempfile_info) == YES)
+        flag |= CLIENT_TEMP_REMAIN;
 
-    // Firstly, client should generate a (filename,md5) list as ./metadata/username-list.data
+    // client should generate a (filename,md5) list as ./local-meta/username.data
+    char local_meta_path[BUF_SIZE] = {0};
+    if(LocalMetaGen(username, config_path, local_meta_path) == MYERROR){
+        errHandler("InitSync", "LocalMetaGen error", NO_EXIT);
+        return MYERROR;
+    }
 
-    // Before the normal transportation, client should check whether there remains a file named as [username-remain.data] in ./metadata/
-    // if there is, that means the last file it received last time is incomplete because of network problems,
-    // so it will ask the server to provide the rest of that file
-    // SERVER WILL ALSO DO THIS JOB
+    // client compare local meta data with remote meta data and generate strategies
 
-    // if the file size is 0, then ignore it
+    // client send GET or POST protocols to server and transport data
 
 
     return OK;
@@ -323,7 +342,7 @@ Status InitSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *config
 
 // RTSync - Real Time Sync
 /* log out will happen in this function */
-Status RTSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *config_path)
+Status RTSync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *config_path)
 {
 
     return OK;

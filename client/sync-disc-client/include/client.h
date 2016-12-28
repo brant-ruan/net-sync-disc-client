@@ -99,10 +99,10 @@ Status errMessage(const char *msg);
 // -----
 Status Identify(char *username, char *password_md5, int username_len, SOCKET *sClient, portType *slisten, char pro_type);
 Status sockConfig(SOCKET *sClient, portType port);
-Status ShowRemoteDir(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *remote_meta_path);
-Status TransportRemoteDir(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *remote_meta_path);
-Status InitSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *config__path, char *remote_meta_path);
-Status RTSync(char *username, SOCKET *CTRLsock, SOCKET *DATAsock, char *config_path);
+Status ShowRemoteDir(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *remote_meta_path);
+Status TransportRemoteDir(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *remote_meta_path);
+Status InitSync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *config__path, char *remote_meta_path);
+Status RTSync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *config_path);
 // -----
 Status Log(char *message, char *username);
 Status timeGen(char *time);
@@ -119,6 +119,8 @@ Status IsInitSyncDone(char *config_path);
 Status SetInitSyncDone(char *username, char *config_path);
 Status FileQueuePush(char *dir, FILE *fp);
 Status FileQueuePop(char *dir, FILE *fp, int *path_offset);
-Status LocalMetaGen(char *username, char *config_path);
+Status LocalMetaGen(char *username, char *config_path, char *local_meta_path);
 Status DisplayFileInfo(char *username, char *remote_meta_path);
+Status FileIgnore(char *filename);
+Status ClientTempRemain(char *username, struct fileInfo *client_file_info, char *tempfile, char *tempfile_info);
 #endif // SYNC-DISC-CLIENT_H_INCLUDED

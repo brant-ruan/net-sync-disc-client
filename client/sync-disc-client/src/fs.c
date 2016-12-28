@@ -194,7 +194,7 @@ Status FileQueuePop(char *dir, FILE *fp, int *path_offset)
 }
 
 /* generate a meta-data file in ./local-meta/[username].meta */
-Status LocalMetaGen(char *username, char *config_path)
+Status LocalMetaGen(char *username, char *config_path, char *local_meta_path)
 {
     int k = 0;
     int len = 0;
@@ -226,7 +226,6 @@ Status LocalMetaGen(char *username, char *config_path)
     }
 
     // open meta file
-    char local_meta_path[BUF_SIZE] = {0};
     sprintf(local_meta_path, "./local-meta/%s.meta", username);
     unlink(local_meta_path); // if the file already exists, unlink it
     FILE *meta_fp;
@@ -273,7 +272,7 @@ Status LocalMetaGen(char *username, char *config_path)
             }
         }
         else{ // file
-            if(file.size == 0) // 0 byte file is ignored
+            if(file.size == 0 || FileIgnore(file.name) == YES) // 0 byte file is ignored
                 continue;
             i = 0;
             j = strlen(local_dir_path) - 1; // delete '*'
@@ -321,4 +320,16 @@ Status DisplayFileInfo(char *username, char *remote_meta_path)
 
     fclose(fp);
     return OK;
+}
+
+/* This is for expand in the future that user can leave a file-ignore file like .gitnore */
+Status FileIgnore(char *filename)
+{
+    return NO;
+}
+
+/* check whether client should transport data for breakpoint */
+Status ClientTempRemain(char *username, struct fileInfo *client_file_info, char *tempfile, char *tempfile_info)
+{
+    return NO;
 }
