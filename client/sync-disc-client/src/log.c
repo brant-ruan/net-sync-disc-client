@@ -34,6 +34,7 @@ Status Log(char *message, char *username)
     log_info.message_len = strlen(log_info.message);
     fwrite(log_info.logtime, sizeof(char), TIME_STR_LEN + 1, fp); // '1' is for the whitespace
     fwrite(log_info.message, sizeof(char), log_info.message_len, fp);
+    fputc('\n', fp);
     fflush(fp);
     fclose(fp);
 

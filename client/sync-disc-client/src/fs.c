@@ -276,7 +276,7 @@ Status LocalMetaGen(char *username, char *config_path)
             if(file.size == 0) // 0 byte file is ignored
                 continue;
             i = 0;
-            j = strlen(local_dir_path) - 1;
+            j = strlen(local_dir_path) - 1; // delete '*'
             while(1){
                 temp = cur_find_path[j + i];
                 if(temp == '*' || temp == '\0')
@@ -296,7 +296,7 @@ Status LocalMetaGen(char *username, char *config_path)
             fflush(meta_fp);
         }
     }
-
+    Log("Generate local disc directory meta data - Complete", username);
     fclose(meta_fp);
     fclose(fp);
     return OK;

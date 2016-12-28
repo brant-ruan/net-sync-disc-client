@@ -11,6 +11,7 @@
  *  - MYERROR handle principle:
  *      - all the MYERROR message are printed in the direct function where
  *      - MYERROR happens, and return MYERROR
+ *  - Run as administrator :), or the process may have trouble when create or modify files.
  **/
 
 #include "client.h"
