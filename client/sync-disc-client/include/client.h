@@ -75,7 +75,7 @@ struct logInfo{
 
 struct fileInfo{
     char filename[BUF_SIZE]; // absolute path relative to the local-bind-dir
-    int filesize; // file whole size
+    unsigned int filesize; // file whole size
     char md5[MD5_CHAR_LEN + 1];
     char padding[3];
 };
@@ -117,6 +117,8 @@ Status UnbindDir(char *username, char *config_path);
 Status BindDir(char *username, char *config_path);
 Status IsInitSyncDone(char *config_path);
 Status SetInitSyncDone(char *username, char *config_path);
+Status FileQueuePush(char *dir, FILE *fp);
+Status FileQueuePop(char *dir, FILE *fp, int *path_offset);
 Status LocalMetaGen(char *username, char *config_path);
 Status DisplayFileInfo(char *username, char *remote_meta_path);
 #endif // SYNC-DISC-CLIENT_H_INCLUDED
