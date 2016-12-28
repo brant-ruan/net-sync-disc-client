@@ -103,6 +103,7 @@ Status ShowRemoteDir(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_sen
 Status TransportRemoteDir(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *remote_meta_path);
 Status InitSync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *config__path, char *remote_meta_path);
 Status RTSync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *config_path);
+Status Sync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, Status done_flag, char *strategy_path);
 // -----
 Status Log(char *message, char *username);
 Status timeGen(char *time);
@@ -122,5 +123,6 @@ Status FileQueuePop(char *dir, FILE *fp, int *path_offset);
 Status LocalMetaGen(char *username, char *config_path, char *local_meta_path);
 Status DisplayFileInfo(char *username, char *remote_meta_path);
 Status FileIgnore(char *filename);
-Status ClientTempRemain(char *username, struct fileInfo *client_file_info, char *tempfile, char *tempfile_info);
+Status ClientTempRemain(char *username, struct fileInfo *client_file_info, char *tempfile, char *tempfile_info, fileSizeType *tempsize);
+Status StrategyGen(char *username, Status done_flag, fileSizeType *tempsize, struct fileInfo *client_file_info, char *local_meta_path, char *remote_meta_path, char *strategy_path);
 #endif // SYNC-DISC-CLIENT_H_INCLUDED

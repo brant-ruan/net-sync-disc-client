@@ -86,7 +86,9 @@ Label_begin:
         errHandler("main", "BindDir error", NO_EXIT);
         goto Label_end;
     }
-
+    /** here you should lock the disc (open a file in disc)
+        remains to be done
+     **/
     if(ShowRemoteDir(username, &CTRLsock_send, &DATAsock_send, &CTRLsock_recv, &DATAsock_recv, remote_meta_path) == MYERROR){
         errHandler("main", "ShowRemoteDir error", NO_EXIT);
         goto Label_end;

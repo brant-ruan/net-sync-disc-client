@@ -93,7 +93,8 @@ Status sockConfig(SOCKET *sClient, portType port)
  * Used by login.c and signup.c
  * pro_type is PRO_LOGIN or PRO_SIGNUP
  */
-Status Identify(char *username, char *password_md5, int username_len, SOCKET *sClient, portType *slisten, char pro_type)
+Status Identify(char *username, char *password_md5, int username_len, \
+                SOCKET *sClient, portType *slisten, char pro_type)
 {
     UIDInit();
 
@@ -296,7 +297,8 @@ typedef struct fd_set {
 }
 
 /* remember that after InitSync you need set INITSYNC=1 In conf */
-Status InitSync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *config_path, char *remote_meta_path)
+Status InitSync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SOCKET *CTRLsock_recv, \
+                SOCKET *DATAsock_recv, char *config_path, char *remote_meta_path)
 {
     // if Initial sync has been done , then return directly
     Status done_flag = IsInitSyncDone(config_path);
@@ -310,20 +312,20 @@ Status InitSync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SO
     // from here, initial sync will process
     // check whether there is ./temp/username.meta
     // if it exists, then ask server to send it
-    char CLIENT_TEMP_REMAIN = 1;
-    char flag = 0;
     struct fileInfo client_file_info;
     char tempfile[BUF_SIZE] = {0};
     char tempfile_info[BUF_SIZE] = {0};
     sprintf(tempfile, "./temp/%s.temp", username);
     sprintf(tempfile_info, "./temp/%s.temp.info", username);
-    done_flag = ClientTempRemain(username, &client_file_info, tempfile, tempfile_info);
-    if(ClientTempRemain(username, &client_file_info, tempfile, tempfile_info) == MYERROR){
+    // client_file_info.filesize is currently the size of temp file
+    // client_file_info.md5 is the whole file's md5
+    // client_file_info.filename makes no sense
+    fileSizeType tempsize = 0;
+    done_flag = ClientTempRemain(username, &client_file_info, tempfile, tempfile_info, &tempsize);
+    if(done_flag == MYERROR){
         errHandler("InitSync", "ClientTempRemain error", NO_EXIT);
         return MYERROR;
     }
-    if(ClientTempRemain(username, &client_file_info, tempfile, tempfile_info) == YES)
-        flag |= CLIENT_TEMP_REMAIN;
 
     // client should generate a (filename,md5) list as ./local-meta/username.data
     char local_meta_path[BUF_SIZE] = {0};
@@ -333,16 +335,38 @@ Status InitSync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SO
     }
 
     // client compare local meta data with remote meta data and generate strategies
+    char strategy_path[BUF_SIZE] = {0};
+    sprintf(strategy_path, "./strategy/%s.strategy", username);
+    unlink(strategy_path);
+    if(StrategyGen(username, done_flag, &tempsize, &client_file_info, local_meta_path, remote_meta_path, strategy_path) == MYERROR){
+        errHandler("InitSync", "StategyGen error", NO_EXIT);
+        return MYERROR;
+    }
 
-    // client send GET or POST protocols to server and transport data
+    // client should ponder if it lose connection with server, it should take note of the breakpoint
+    if(Sync(username, CTRLsock_send, CTRLsock_recv, DATAsock_send, DATAsock_recv, done_flag, strategy_path) == MYERROR){
+        errHandler("InitSync", "Sync error", NO_EXIT);
+        return MYERROR;
+    }
 
+    if(SetInitSyncDone(username, config_path) == MYERROR){
+        errHandler("InitSync", "SetInitSyncDone error", NO_EXIT);
+        return MYERROR;
+    }
 
+    return OK;
+}
+
+Status Sync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, \
+            SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, Status done_flag, char *strategy_path)
+{
     return OK;
 }
 
 // RTSync - Real Time Sync
 /* log out will happen in this function */
-Status RTSync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *config_path)
+Status RTSync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, \
+              SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *config_path)
 {
 
     return OK;

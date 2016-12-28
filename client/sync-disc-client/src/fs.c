@@ -329,7 +329,66 @@ Status FileIgnore(char *filename)
 }
 
 /* check whether client should transport data for breakpoint */
-Status ClientTempRemain(char *username, struct fileInfo *client_file_info, char *tempfile, char *tempfile_info)
+Status ClientTempRemain(char *username, struct fileInfo *client_file_info, char *tempfile, char *tempfile_info, fileSizeType *tempsize)
 {
-    return NO;
+/*
+    username.temp.info is the content of a structure fileInfo
+*/
+    FILE *fp, *fpp;
+    fp = fopen(tempfile, "r");
+    fpp = fopen(tempfile_info, "r");
+    if(fp == NULL || fpp == NULL){
+        fclose(fp);
+        fclose(fpp);
+        unlink(tempfile);
+        unlink(tempfile_info);
+        return NO;
+    }
+    fread(client_file_info, sizeof(char), FILE_INFO_SIZE, fpp);
+
+    fseek(fp, 0, SEEK_END); // calculate file size
+    *tempsize = ftell(fp);
+
+    fclose(fp);
+    fclose(fpp);
+    return YES;
+}
+
+/* Generate commands used in initial sync */\
+/* flag == YES means that there are temp file */
+Status StrategyGen(char *username, Status flag, fileSizeType *tempsize, struct fileInfo *client_file_info, \
+                   char *local_meta_path, char *remote_meta_path, char *strategy_path)
+{
+    FILE *strategy_fp;
+    FILE *local_fp;
+    FILE *remote_fp;
+    char command[2 * BUF_SIZE] = {0};
+    strategy_fp = fopen(strategy_path, "w");
+    if(strategy_fp == NULL){
+        errHandler("StrategyGen", "fopen error", NO_EXIT);
+        return MYERROR;
+    }
+    local_fp = fopen(local_meta_path, "r");
+    if(local_fp == NULL){
+        errHandler("StrategyGen", "fopen error", NO_EXIT);
+        return MYERROR;
+    }
+    remote_fp = fopen(remote_meta_path, "r");
+    if(remote_fp == NULL){
+        errHandler("StrategyGen", "fopen error", NO_EXIT);
+        return MYERROR;
+    }
+
+    if(flag == YES){
+        // G\r\n[md5]\r\n[offset]\r\n\r\n[filename]\r\n[filesize]\r\n\r\n
+      /*  sprintf(command, "%c%s%s%s%u%s%s%u%s", PRO_GET, SEPARATOR, client_file_info->md5, \
+                SEPARATOR, *tempsize, TERMINATOR, client_file_info->filename, \
+                client_file_info->filesize, TERMINATOR);
+*/
+    }
+
+    fclose(strategy_fp);
+    fclose(local_fp);
+    fclose(remote_fp);
+    return OK;
 }
