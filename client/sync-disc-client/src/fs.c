@@ -179,3 +179,151 @@ Status DisplayFileInfo(char *username, char *remote_meta_path)
     fclose(fp);
     return OK;
 }
+
+/*
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <winsock2.h>
+#include <io.h>
+#define MYERROR         -1
+#define OK              0
+#define YES             1
+#define NO              0
+
+#define USERNAME_MIN    6
+#define USERNAME_MAX    12
+#define PASSWORD_MIN    8
+#define PASSWORD_MAX    20
+
+#define MD5_CHAR_LEN    32
+#define MD5_NUM_LEN     16
+
+#define OP_LOGIN        1
+#define OP_SIGNUP       2
+#define OP_QUIT         3
+
+#define NO_EXIT         0
+#define EXIT            1
+
+#define TIME_STR_LEN    19 // 2016-12-21 08:15:59
+
+#define SEPARATOR       "\r\n"
+#define TERMINATOR      "\r\n\r\n"
+
+#define IP_LEN          15
+
+#define NONBLOCK        1
+#define BLOCK           0
+
+#define BUF_SIZE        256
+typedef int Status;
+char default_conf[] = "LOCALDIR=N\nINITSYNC=N\nPATH=";
+struct fileInfo{
+    char filename[BUF_SIZE]; // absolute path relative to the local-bind-dir
+    int filesize; // file whole size
+    char md5[MD5_CHAR_LEN + 1];
+    char padding[2];
+};
+
+#define FILE_INFO_SIZE  sizeof(struct fileInfo)
+Status FileQueuePush(char *dir, FILE *fp, int *path_offset)
+{
+    int len = strlen(dir);
+    fseek(fp, 0, SEEK_END);
+    fwrite(dir, sizeof(char), len, fp);
+    fputc('\n', fp);
+    fflush(fp);
+
+    return OK;
+}
+
+Status FileQueuePop(char *dir, FILE *fp, int *path_offset)
+{
+    int i = 0;
+    char temp;
+    fseek(fp, *path_offset, SEEK_SET);
+    printf("ftell: %d\n", ftell(fp));
+    printf("this time: ");
+    while((temp = fgetc(fp)) != EOF && temp != '\n'){
+        printf("%c", temp);
+        dir[i] = temp;
+        i++;
+    }
+    printf("\n");
+    if(temp == EOF)
+        return MYERROR; // Note that is not an error, just arriving at the end of file
+    //temp = fgetc(fp); // to read out the last \n
+
+    dir[i] = '\0';
+    int len = strlen(dir);
+    *path_offset += len + 2;
+    if(len > BUF_SIZE - 3){
+        printf("error\n");
+        return MYERROR;
+    }
+    else{
+        dir[len++] = '/';
+        dir[len++] = '*';
+        dir[len] = '\0';
+    }
+    printf("next dir: %s\n", dir);
+
+    return OK;
+}
+
+// Status GenLocal(char *)
+int main(void)
+{
+    struct _finddata_t file;
+    int k;
+    int len;
+    int path_offset = 0;
+    FILE *fp;
+    char dir_path[2 * BUF_SIZE] = {0};
+    char stack[] = "./config/stack.txt";
+    unlink(stack);
+    fp = fopen("./config/stack.txt", "w+");
+    long HANDLE;
+    char cur_path[BUF_SIZE] = "D:/2linux/network/last/temp/*";
+    k = HANDLE = _findfirst(cur_path, &file);
+    while(1){
+        k = _findnext(HANDLE, &file);
+        if(k == -1){
+            _findclose(HANDLE);
+            if(FileQueuePop(cur_path, fp, &path_offset) == MYERROR){
+                printf("end\n");
+                break;
+            }
+            printf("new pop out: %s\n", cur_path);
+            k = HANDLE = _findfirst(cur_path, &file);
+            continue;
+        }
+        if(file.attrib & _A_SUBDIR){
+            printf("dir: %s\n", file.name);
+            if(strcmp(file.name, ".") == 0 || strcmp(file.name, "..") == 0)
+                continue;
+            else{
+                strcpy(dir_path, cur_path);
+                dir_path[strlen(dir_path) - 1] = '\0';
+                if(strlen(file.name) > BUF_SIZE - 3){
+                    printf("[%s] filename is too long...\n", file.name);
+                }
+                else{
+                    strcat(dir_path, file.name);
+                    printf("write in: %s\n", dir_path);
+                    FileQueuePush(dir_path, fp, &path_offset);
+                }
+            }
+        }
+        else{
+            printf("name: %s size: %u [file]\n", file.name, file.size);
+        }
+    }
+
+    _findclose(HANDLE);
+    fclose(fp);
+    return 0;
+}
+
+*/
