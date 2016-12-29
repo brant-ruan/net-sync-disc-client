@@ -127,7 +127,7 @@ Status IsInitSyncDone(char *config_path);
 Status SetInitSyncDone(char *username, char *config_path);
 Status FileQueuePush(char *dir, FILE *fp);
 Status FileQueuePop(char *dir, FILE *fp, int *path_offset);
-Status LocalMetaGen(char *username, char *config_path, char *remote_meta_path);
+Status LocalMetaGen(char *username, char *config_path, char *local_meta_path);
 Status DisplayFileInfo(char *username, char *remote_meta_path);
 Status FileIgnore(char *filename);
 Status ClientTempRemain(char *username, struct fileInfo *client_file_info, char *tempfile, char *tempfile_info, fileSizeType *tempsize);

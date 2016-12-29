@@ -306,7 +306,7 @@ Status DisplayFileInfo(char *username, char *remote_meta_path)
     FILE *fp;
     struct fileInfo meta_file;
 
-    fp = fopen(remote_meta_path, "r");
+    fp = fopen(remote_meta_path, "rb");
     if(fp == NULL){
         errHandler("DisplayFileInfo", "fopen error", NO_EXIT);
         return MYERROR;
@@ -362,18 +362,18 @@ Status StrategyGen(char *username, Status flag, fileSizeType *tempsize, struct f
     FILE *strategy_fp;
     FILE *local_fp;
     FILE *remote_fp;
-    strategy_fp = fopen(strategy_path, "w");
+    strategy_fp = fopen(strategy_path, "wb");
     if(strategy_fp == NULL){
         errHandler("StrategyGen", "fopen error", NO_EXIT);
         return MYERROR;
     }
-    local_fp = fopen(local_meta_path, "r");
+    local_fp = fopen(local_meta_path, "rb");
     if(local_fp == NULL){
         errHandler("StrategyGen", "fopen error", NO_EXIT);
         fclose(strategy_fp);
         return MYERROR;
     }
-    remote_fp = fopen(remote_meta_path, "r");
+    remote_fp = fopen(remote_meta_path, "rb");
     if(remote_fp == NULL){
         errHandler("StrategyGen", "fopen error", NO_EXIT);
         fclose(strategy_fp);

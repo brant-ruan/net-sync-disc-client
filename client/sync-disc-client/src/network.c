@@ -196,7 +196,7 @@ Status TransportRemoteDir(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsoc
     int write_ptr = 0;
 
     FILE *fp;
-    if((fp = fopen(remote_meta_path, "w")) == NULL){
+    if((fp = fopen(remote_meta_path, "wb")) == NULL){
         errHandler("TransportRemoteDir", "fopen error", NO_EXIT);
         return MYERROR;
     }
