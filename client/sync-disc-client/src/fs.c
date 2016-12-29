@@ -229,7 +229,7 @@ Status LocalMetaGen(char *username, char *config_path, char *local_meta_path)
     sprintf(local_meta_path, "./local-meta/%s.meta", username);
     unlink(local_meta_path); // if the file already exists, unlink it
     FILE *meta_fp;
-    meta_fp = fopen(local_meta_path, "w");
+    meta_fp = fopen(local_meta_path, "wb");
     if(meta_fp == NULL){
         errHandler("LocalMetaGen", "fopen error", NO_EXIT);
         return MYERROR;
@@ -445,7 +445,7 @@ Status POSTStrategy(char *username, FILE *local_fp, FILE *remote_fp, FILE *strat
             }
         }
         else{
-            res3 = SameMD5(username, &local_file, &remote_file, local_fp);
+            res3 = SameMD5(username, &local_file, &remote_file, remote_fp);
             if(res3 == MYERROR){
                 errHandler("POSTStrategy", "SameMD5 error", NO_EXIT);
                 return MYERROR;
