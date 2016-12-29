@@ -362,7 +362,6 @@ Status StrategyGen(char *username, Status flag, fileSizeType *tempsize, struct f
     FILE *strategy_fp;
     FILE *local_fp;
     FILE *remote_fp;
-    char command[2 * BUF_SIZE] = {0};
     strategy_fp = fopen(strategy_path, "w");
     if(strategy_fp == NULL){
         errHandler("StrategyGen", "fopen error", NO_EXIT);
@@ -378,7 +377,7 @@ Status StrategyGen(char *username, Status flag, fileSizeType *tempsize, struct f
         errHandler("StrategyGen", "fopen error", NO_EXIT);
         return MYERROR;
     }
-
+    struct protocolInfo command;
     if(flag == YES){
         // G\r\n[md5]\r\n[offset]\r\n\r\n[filename]\r\n[filesize]\r\n\r\n
       /*  sprintf(command, "%c%s%s%s%u%s%s%u%s", PRO_GET, SEPARATOR, client_file_info->md5, \

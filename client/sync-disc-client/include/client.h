@@ -82,6 +82,12 @@ struct fileInfo{
 
 #define FILE_INFO_SIZE  sizeof(struct fileInfo)
 
+struct protocolInfo{
+    char message[2 * BUF_SIZE];
+};
+
+#define PROTOCOL_INFO_SIZE  sizeof(struct protocolInfo)
+
 /* function definition */
 Status MD5Str(char *md5, char *str, int str_len);
 Status MD5File(char *md5, char *filename);

@@ -252,7 +252,7 @@ typedef struct fd_set {
                     }
                     recvbuf[len] = '\0';
                     Log(recvbuf, username);
-                    if(recvbuf[0] == PRO_META && recvbuf[3] == 'A'){
+                    if(recvbuf[0] == PRO_META && recvbuf[3] == 'Y'){
                         recv_meta_size = atoi(&recvbuf[strlen("F\r\nA\r\n")]);
                     } // server will send recv_meta_size bytes of meta data
                     else{

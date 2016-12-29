@@ -1,0 +1,101 @@
+文件目录元数据：
+
+请求包：
+
+	F\r\nR\r\n\r\n
+
+回应包：
+
+准备发给对方：
+
+	F\r\nY\r\n[meta-filesize]\r\n\r\n
+
+不准备发送：
+
+	F\r\nN\r\n\r\n
+
+GET请求：
+
+请求包：
+
+	G\r\n[md5]\r\n[offset]\r\n\r\n
+
+回应包：
+
+准备发送给对方：
+
+	G\r\nY\r\n\r\n
+
+不准备发送给对方：
+
+	G\r\nN\r\n\r\n
+
+POST请求：
+
+请求包：
+
+	H\r\n[filename]\r\n[md5]\r\n[filesize]\r\n\r\n
+
+回应包：
+
+准备接收：
+
+	H\r\nY\r\n\r\n
+
+不接收：
+
+	H\r\nN\r\n\r\n
+
+删除文件：
+
+请求包：
+
+	I\r\n[filename]\r\n[md5]\r\n\r\n
+
+回应包：
+
+成功：
+
+	I\r\nY\r\n\r\n
+
+失败：
+
+	I\r\nN\r\n\r\n
+
+重命名：
+
+	J\r\n[old-filename]\r\n[new-filename]\r\n\r\n
+
+回应包：
+
+成功：
+
+	J\r\nY\r\n\r\n
+
+失败：
+
+	J\r\nN\r\n\r\n
+
+更换网盘目录：
+
+请求包：
+
+	K\r\n[new-dir](限定为A/B/C之一)\r\n\r\n
+
+回应包：
+
+更改成功：
+
+	K\r\nY\r\n\r\n
+
+更改失败：
+
+	K\r\nN\r\n\r\n
+
+如果更改成功，客户端注销要求用户重新登录
+
+注销：
+
+请求包：
+
+	D\r\nR\r\n\r\n
