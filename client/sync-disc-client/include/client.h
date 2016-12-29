@@ -75,7 +75,7 @@ struct logInfo{
 
 struct fileInfo{
     char filename[BUF_SIZE]; // absolute path relative to the local-bind-dir
-    unsigned int filesize; // file whole size
+    fileSizeType filesize; // file whole size
     char md5[MD5_CHAR_LEN + 1];
     char padding[3];
 };
@@ -84,6 +84,7 @@ struct fileInfo{
 
 struct protocolInfo{
     char message[2 * BUF_SIZE];
+    int message_len;
 };
 
 #define PROTOCOL_INFO_SIZE  sizeof(struct protocolInfo)
@@ -126,7 +127,7 @@ Status IsInitSyncDone(char *config_path);
 Status SetInitSyncDone(char *username, char *config_path);
 Status FileQueuePush(char *dir, FILE *fp);
 Status FileQueuePop(char *dir, FILE *fp, int *path_offset);
-Status LocalMetaGen(char *username, char *config_path, char *local_meta_path);
+Status LocalMetaGen(char *username, char *config_path, char *remote_meta_path);
 Status DisplayFileInfo(char *username, char *remote_meta_path);
 Status FileIgnore(char *filename);
 Status ClientTempRemain(char *username, struct fileInfo *client_file_info, char *tempfile, char *tempfile_info, fileSizeType *tempsize);

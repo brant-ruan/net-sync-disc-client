@@ -378,12 +378,55 @@ Status StrategyGen(char *username, Status flag, fileSizeType *tempsize, struct f
         return MYERROR;
     }
     struct protocolInfo command;
+    int len = 0;
+    // breakpoint transportation
     if(flag == YES){
         // G\r\n[md5]\r\n[offset]\r\n\r\n[filename]\r\n[filesize]\r\n\r\n
-      /*  sprintf(command, "%c%s%s%s%u%s%s%u%s", PRO_GET, SEPARATOR, client_file_info->md5, \
-                SEPARATOR, *tempsize, TERMINATOR, client_file_info->filename, \
-                client_file_info->filesize, TERMINATOR);
-*/
+        sprintf(command.message, "%c%s%s%s%s%s%u%s%u%s", PRO_GET, SEPARATOR, client_file_info->filename, \
+                SEPARATOR, client_file_info->md5, SEPARATOR, client_file_info->filesize, \
+                SEPARATOR, *tempsize, TERMINATOR);
+        command.message_len = strlen(command.message);
+        while(len < PROTOCOL_INFO_SIZE){
+            len += fwrite(&command + len, sizeof(char), PROTOCOL_INFO_SIZE - len, strategy_fp);
+        }
+    }
+
+    struct fileInfo local_file;
+    struct fileInfo remote_file;
+    Status res1;
+    Status res2;
+    // generate POST
+    while(1){
+        res1 = fread(&local_file, sizeof(char), FILE_INFO_SIZE, local_fp);
+        if(res1 == 0)
+            break;
+        res2 = SameMD5(username, &local_file, &remote_file, remote_fp);
+        if(res == MYERROR){
+            errHandler("StrategyGen", "SameMD5 error", NO_EXIT);
+            fclose(strategy_fp);
+            fclose(local_fp);
+            fclose(remote_fp);
+            return MYERROR;
+        }
+        if(res == YES){
+            if(){
+
+            }
+        }
+        else{
+
+        }
+
+    }
+
+    // generate GET
+    fseek(local_fp, 0, SEEK_SET);
+    fseek(remote_fp, 0, SEEK_SET);
+    while(1){
+        res = fread(&remote_file, sizeof(char), FILE_INFO_SIZE, remote_fp);
+        if(res == 0)
+            break;
+
     }
 
     fclose(strategy_fp);
