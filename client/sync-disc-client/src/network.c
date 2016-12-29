@@ -338,7 +338,7 @@ Status InitSync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SO
     char strategy_path[BUF_SIZE] = {0};
     sprintf(strategy_path, "./strategy/%s.strategy", username);
     unlink(strategy_path);
-    if(StrategyGen(username, done_flag, &tempsize, &client_file_info, local_meta_path, remote_meta_path, strategy_path) == MYERROR){
+    if(StrategyGen(username, done_flag, &tempsize, &client_file_info, local_meta_path, remote_meta_path, strategy_path, config_path) == MYERROR){
         errHandler("InitSync", "StategyGen error", NO_EXIT);
         return MYERROR;
     }

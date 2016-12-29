@@ -131,9 +131,13 @@ Status LocalMetaGen(char *username, char *config_path, char *remote_meta_path);
 Status DisplayFileInfo(char *username, char *remote_meta_path);
 Status FileIgnore(char *filename);
 Status ClientTempRemain(char *username, struct fileInfo *client_file_info, char *tempfile, char *tempfile_info, fileSizeType *tempsize);
-Status StrategyGen(char *username, Status done_flag, fileSizeType *tempsize, struct fileInfo *client_file_info, char *local_meta_path, char *remote_meta_path, char *strategy_path);
+Status StrategyGen(char *username, Status done_flag, fileSizeType *tempsize, struct fileInfo *client_file_info, \
+                   char *local_meta_path, char *remote_meta_path, char *strategy_path, char *config_path);
 Status SameName(char *username, struct fileInfo *special_file, struct fileInfo *hold_file, FILE *fp);
-Status SameMD5(char *username, struct fileInfo *special_file, struct fileInfo *hold_file);
-Status ChangeName(char *username, struct fileInfo *local_file, char *new_filename);
+Status SameMD5(char *username, struct fileInfo *special_file, struct fileInfo *hold_file, FILE *fp);
+Status ChangeName(char *username, struct fileInfo *local_file, char *new_filename, char *config_path);
+Status GETStrategy(char *username, FILE *local_fp, FILE *remote_fp, FILE *strategy_fp, Status flag, struct fileInfo *client_file_info, char *config_path);
+Status POSTStrategy(char *username, FILE *local_fp, FILE *remote_fp, FILE *strategy_fp);
 Status GenGET(char *username, struct protocolInfo *command, struct fileInfo *file_info, fileSizeType offset, FILE *strategy_fp);
+Status GenPOST(char *username, struct protocolInfo *command, struct fileInfo *file_info, FILE *strategy_fp);
 #endif // SYNC-DISC-CLIENT_H_INCLUDED

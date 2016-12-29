@@ -357,7 +357,7 @@ Status ClientTempRemain(char *username, struct fileInfo *client_file_info, char 
 /* Generate commands used in initial sync */
 /* flag == YES means that there are temp file */
 Status StrategyGen(char *username, Status flag, fileSizeType *tempsize, struct fileInfo *client_file_info, \
-                   char *local_meta_path, char *remote_meta_path, char *strategy_path)
+                   char *local_meta_path, char *remote_meta_path, char *strategy_path, char *config_path)
 {
     FILE *strategy_fp;
     FILE *local_fp;
@@ -370,33 +370,115 @@ Status StrategyGen(char *username, Status flag, fileSizeType *tempsize, struct f
     local_fp = fopen(local_meta_path, "r");
     if(local_fp == NULL){
         errHandler("StrategyGen", "fopen error", NO_EXIT);
+        fclose(strategy_fp);
         return MYERROR;
     }
     remote_fp = fopen(remote_meta_path, "r");
     if(remote_fp == NULL){
         errHandler("StrategyGen", "fopen error", NO_EXIT);
+        fclose(strategy_fp);
+        fclose(local_fp);
         return MYERROR;
     }
+    Status ret = OK;
     struct protocolInfo command;
     // breakpoint transportation
     if(flag == YES){
         // G\r\n[md5]\r\n[offset]\r\n\r\n[filename]\r\n[filesize]\r\n\r\n
         if(GenGET(username, &command, client_file_info, *tempsize, strategy_fp) == MYERROR){
             errHandler("StrategyGen", "GenGET error", NO_EXIT);
-            fclose(strategy_fp);
-            fclose(local_fp);
-            fclose(remote_fp);
-            return MYERROR;
+            ret = MYERROR;
+            goto label_Strategy_end;
         }
     }
 
+    if(GETStrategy(username, local_fp, remote_fp, strategy_fp, flag, client_file_info, config_path) == MYERROR){
+        errHandler("StrategyGen", "GETStrategy error", NO_EXIT);
+        ret = MYERROR;
+        goto label_Strategy_end;
+    }
+
+    if(POSTStrategy(username, local_fp, remote_fp, strategy_fp) == MYERROR){
+        errHandler("StrategyGen", "POSTStrategy error", NO_EXIT);
+        ret = MYERROR;
+        goto label_Strategy_end;
+    }
+
+label_Strategy_end:
+    fclose(strategy_fp);
+    fclose(local_fp);
+    fclose(remote_fp);
+    return ret;
+}
+
+/* Generate POST strategy */
+Status POSTStrategy(char *username, FILE *local_fp, FILE *remote_fp, FILE *strategy_fp)
+{
+    struct protocolInfo command;
+    struct fileInfo local_file;
+    struct fileInfo remote_file;
+    Status res1;
+    Status res2;
+    Status res3;
+    fseek(local_fp, 0, SEEK_SET);
+    fseek(remote_fp, 0, SEEK_SET);
+
+    while(1){
+        res1 = fread(&local_file, sizeof(char), FILE_INFO_SIZE, local_fp);
+        if(res1 == 0)
+            break; // all is generated
+        res2 = SameName(username, &local_file, &remote_file, remote_fp);
+        if(res2 == MYERROR){
+            errHandler("POSTStrategy", "SameName error", NO_EXIT);
+            return MYERROR;
+        }
+        if(res2 == YES){ // has file of same name
+            if(strcmp(local_file.md5, remote_file.md5) == 0)
+                continue; // same name same MD5
+            else{ // same name different MD5
+                // local file has been changed name when GET was generated
+                sprintf(local_file.filename, "%s.%s", local_file.filename, local_file.md5);
+                if(GenPOST(username, &command, &local_file, strategy_fp) == MYERROR){
+                    errHandler("POSTStrategy", "GenPOST error", NO_EXIT);
+                    return MYERROR;
+                }
+            }
+        }
+        else{
+            res3 = SameMD5(username, &local_file, &remote_file, local_fp);
+            if(res3 == MYERROR){
+                errHandler("POSTStrategy", "SameMD5 error", NO_EXIT);
+                return MYERROR;
+            }
+            if(res3 == YES){ // different file same MD5
+                continue; // local file has been changed name when GET was generated
+            }
+            else{
+                if(GenPOST(username, &command, &local_file, strategy_fp) == MYERROR){
+                    errHandler("POSTStrategy", "GenPOST error", NO_EXIT);
+                    return MYERROR;
+                }
+            }
+        }
+    }
+
+    Log("Generate POST strategies - Complete", username);
+
+    return OK;
+}
+
+/* Generate GET strategy */
+Status GETStrategy(char *username, FILE *local_fp, FILE *remote_fp, \
+                   FILE *strategy_fp, Status flag, struct fileInfo *client_file_info, char *config_path)
+{
+    struct protocolInfo command;
     struct fileInfo local_file;
     struct fileInfo remote_file;
     Status res1;
     Status res2;
     Status res3;
     char new_filename[BUF_SIZE] = {0};
-    // generate GET
+
     fseek(local_fp, 0, SEEK_SET);
     fseek(remote_fp, 0, SEEK_SET);
     while(1){
@@ -405,44 +487,35 @@ Status StrategyGen(char *username, Status flag, fileSizeType *tempsize, struct f
             break;
         res2 = SameName(username, &remote_file, &local_file, local_fp);
         if(res2 == MYERROR){
-            errHandler("StrategyGen", "SameName error", NO_EXIT);
-            fclose(strategy_fp);
-            fclose(local_fp);
-            fclose(remote_fp);
+            errHandler("GETStrategy", "SameName error", NO_EXIT);
             return MYERROR;
         }
         if(res2 == YES){ // has file of same name
-            res3 = SameMD5(username, &remote_file, &local_file);
-            if(res3 == YES)
+            if(strcmp(remote_file.md5, local_file.md5) == 0)
                 continue; // same name same MD5
             else{ // same name different MD5
                 // change local file's name
                 sprintf(new_filename, "%s.%s", local_file.filename, local_file.md5);
-                if(ChangeName(username, &local_file, new_filename) == MYERROR){
-                    errHandler("StrategyGen", "ChangeName error", NO_EXIT);
-                    fclose(strategy_fp);
-                    fclose(local_fp);
-                    fclose(remote_fp);
+                if(ChangeName(username, &local_file, new_filename, config_path) == MYERROR){
+                    errHandler("GETStrategy", "ChangeName error", NO_EXIT);
                     return MYERROR;
                 }
                 // generate GET
                 if(GenGET(username, &command, &remote_file, 0, strategy_fp) == MYERROR){
-                    errHandler("StrategyGen", "GenGET error", NO_EXIT);
-                    fclose(strategy_fp);
-                    fclose(local_fp);
-                    fclose(remote_fp);
+                    errHandler("GETStrategy", "GenGET error", NO_EXIT);
                     return MYERROR;
                 }
             }
         }
         else{ // no file of same name
-            res3 = SameMD5(username, &remote_file, &local_file);
+            res3 = SameMD5(username, &remote_file, &local_file, local_fp);
+            if(res3 == MYERROR){
+                errHandler("GETStrategy", "SameMD5 error", NO_EXIT);
+                return MYERROR;
+            }
             if(res3 == YES){ // different file same MD5
-                if(ChangeName(username, &local_file, remote_file.filename) == MYERROR){
-                    errHandler("StrategyGen", "ChangeName error", NO_EXIT);
-                    fclose(strategy_fp);
-                    fclose(local_fp);
-                    fclose(remote_fp);
+                if(ChangeName(username, &local_file, remote_file.filename, config_path) == MYERROR){
+                    errHandler("GETStrategy", "ChangeName error", NO_EXIT);
                     return MYERROR;
                 }
             }
@@ -453,10 +526,7 @@ Status StrategyGen(char *username, Status flag, fileSizeType *tempsize, struct f
                     continue;
                 else{ // generate GET
                     if(GenGET(username, &command, &remote_file, 0, strategy_fp) == MYERROR){
-                        errHandler("StrategyGen", "GenGET error", NO_EXIT);
-                        fclose(strategy_fp);
-                        fclose(local_fp);
-                        fclose(remote_fp);
+                        errHandler("GETStrategy", "GenGET error", NO_EXIT);
                         return MYERROR;
                     }
                 }
@@ -464,30 +534,87 @@ Status StrategyGen(char *username, Status flag, fileSizeType *tempsize, struct f
         }
     }
 
-    fclose(strategy_fp);
-    fclose(local_fp);
-    fclose(remote_fp);
+    Log("Generate GET strategies - Complete", username);
+
     return OK;
 }
+
+/** Both SameName and SameMD5 specify the file in the same sub-directory **/
 
 /* to find whether there is a file with the same name */
 Status SameName(char *username, struct fileInfo *special_file, struct fileInfo *hold_file, FILE *fp)
 {
-    fseek(local_fp, 0, SEEK_SET);
+    fseek(fp, 0, SEEK_SET);
 
+    while(fread(hold_file, sizeof(char), FILE_INFO_SIZE, fp) == FILE_INFO_SIZE){
+        if(strcmp(special_file->filename, hold_file->filename) == 0)
+            return YES;
+    }
+
+    return NO;
+}
+/* to find whether there is a file with the same MD5 */
+Status SameMD5(char *username, struct fileInfo *special_file, struct fileInfo *hold_file, FILE *fp)
+{
+    fseek(fp, 0, SEEK_SET);
+    char temp1[BUF_SIZE] = {0};
+    char temp2[BUF_SIZE] = {0};
+    fileSizeType len;
+    int i;
+    while(fread(hold_file, sizeof(char), FILE_INFO_SIZE, fp) == FILE_INFO_SIZE){
+        if(strcmp(special_file->md5, hold_file->md5) == 0){
+            len = strlen(special_file->filename);
+            for(i = len - 1; i >=0; i--){
+                if(special_file->filename[i] == '/')
+                    break;
+            }
+            strncpy(temp1, special_file->filename, i + 1);
+            temp1[i + 1] = '\0';
+            len = strlen(hold_file->filename);
+            for(i = len - 1; i >=0; i--){
+                if(hold_file->filename[i] == '/')
+                    break;
+            }
+            strncpy(temp2, hold_file->filename, i + 1);
+            temp2[i + 1] = '\0';
+            if(strcmp(temp1, temp2) == 0)
+                return YES;
+        }
+    }
 
     return NO;
 }
 
-Status SameMD5(char *username, struct fileInfo *special_file, struct fileInfo *hold_file)
+Status ChangeName(char *username, struct fileInfo *local_file, char *new_filename, char *config_path)
 {
-    if(strcmp(special_file->md5, hold_file->md5) == 0)
-        return YES;
-    return NO;
-}
+    FILE *fp;
+    fp = fopen(config_path, "r");
+    if(fp == NULL){
+        errHandler("ChangeName", "fopen error", NO_EXIT);
+        return ERROR;
+    }
 
-Status ChangeName(char *username, struct fileInfo *local_file, char *new_filename)
-{
+    char disc_base_path[2 * BUF_SIZE] = {0};
+    char old_name[2 * BUF_SIZE] = {0};
+    char new_name[2 * BUF_SIZE] = {0};
+    char temp;
+    int k = 0;
+    fseek(fp, strlen("LOCALDIR=N\n\nINITSYNC=N\n\nPATH="), SEEK_SET);
+
+    while((temp = fgetc(fp)) != EOF && temp != '\n')
+        disc_base_path[k++] = temp;
+    disc_base_path[k] = '\0';
+
+    fclose(fp);
+
+    strcpy(old_name, disc_base_path);
+    strcat(old_name, local_file->filename);
+    strcpy(new_name, disc_base_path);
+    strcat(new_name, new_filename);
+    if(rename(old_name, new_name) == -1){
+        errHandler("ChangeName", "rename error", NO_EXIT);
+        return MYERROR;
+    }
 
     return OK;
 }
@@ -499,6 +626,20 @@ Status GenGET(char *username, struct protocolInfo *command, \
     sprintf(command->message, "%c%s%s%s%s%s%u%s%u%s", PRO_GET, SEPARATOR, file_info->filename, \
             SEPARATOR, file_info->md5, SEPARATOR, file_info->filesize, \
             SEPARATOR, offset, TERMINATOR);
+    command->message_len = strlen(command->message);
+    while(len < PROTOCOL_INFO_SIZE){
+        len += fwrite(command + len, sizeof(char), PROTOCOL_INFO_SIZE - len, strategy_fp);
+    }
+
+    return OK;
+}
+
+Status GenPOST(char *username, struct protocolInfo *command, \
+              struct fileInfo *file_info, FILE *strategy_fp)
+{
+    int len = 0;
+    sprintf(command->message, "%c%s%s%s%s%s%u%s", PRO_POST, SEPARATOR, file_info->filename, \
+            SEPARATOR, file_info->md5, SEPARATOR, file_info->filesize, TERMINATOR);
     command->message_len = strlen(command->message);
     while(len < PROTOCOL_INFO_SIZE){
         len += fwrite(command + len, sizeof(char), PROTOCOL_INFO_SIZE - len, strategy_fp);
