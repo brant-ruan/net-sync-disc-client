@@ -221,7 +221,7 @@ typedef struct fd_set {
     So you can't use select() for FILE* fp (Windows is not linux)
 */
         FD_SET(*CTRLsock_send, &wfd);
-        FD_SET(*CTRLsock_recv, &rfd);
+        FD_SET(*CTRLsock_send, &rfd);
         FD_SET(*DATAsock_recv, &rfd);
         sel = select(0, &rfd, &wfd, NULL, 0);
 		if (sel == SOCKET_ERROR) {
@@ -242,9 +242,9 @@ typedef struct fd_set {
                     flag |= SEND_REQUEST;
                 }
             }
-            if(FD_ISSET(*CTRLsock_recv, &rfd)){
+            if(FD_ISSET(*CTRLsock_send, &rfd)){
                 if((flag & SEND_REQUEST) && !(flag & RECV_ANSWER)){ // receive protocol answer
-                    len = recv(*CTRLsock_recv, recvbuf, BUF_SIZE - 1, 0);
+                    len = recv(*CTRLsock_send, recvbuf, BUF_SIZE - 1, 0);
                     if(len == SOCKET_ERROR){
                         errHandler("TransportRemoteDir", "recv error", NO_EXIT);
                         fclose(fp);

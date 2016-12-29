@@ -18,7 +18,7 @@ GET请求：
 
 请求包：
 
-	G\r\n[md5]\r\n[offset]\r\n\r\n
+	G\r\n[filename]\r\n[md5]\r\n[filesize]\r\n[offset]\r\n\r\n
 
 回应包：
 

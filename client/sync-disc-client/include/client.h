@@ -132,4 +132,8 @@ Status DisplayFileInfo(char *username, char *remote_meta_path);
 Status FileIgnore(char *filename);
 Status ClientTempRemain(char *username, struct fileInfo *client_file_info, char *tempfile, char *tempfile_info, fileSizeType *tempsize);
 Status StrategyGen(char *username, Status done_flag, fileSizeType *tempsize, struct fileInfo *client_file_info, char *local_meta_path, char *remote_meta_path, char *strategy_path);
+Status SameName(char *username, struct fileInfo *special_file, struct fileInfo *hold_file, FILE *fp);
+Status SameMD5(char *username, struct fileInfo *special_file, struct fileInfo *hold_file);
+Status ChangeName(char *username, struct fileInfo *local_file, char *new_filename);
+Status GenGET(char *username, struct protocolInfo *command, struct fileInfo *file_info, fileSizeType offset, FILE *strategy_fp);
 #endif // SYNC-DISC-CLIENT_H_INCLUDED
