@@ -414,6 +414,7 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
     fd_set wfd;
     int len;
     struct protocolInfo command;
+    struct protocolInfo server_cmd;
     while(1){
         if((client_flag & STRATEGY_OK) && (client_flag & F_GET_OK) && (client_flag & F_POST_OK) \
            && (server_flag & F_GET_OK) && (server_flag & F_POST_OK))
@@ -490,16 +491,57 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
             }
         }
         if(FD_ISSET(*CTRLsock_server, &rfd)){ // server send GET or POST
-
+            if(((server_flag & F_GET) && (server_flag & F_GET_OK)) || \
+               ((server_flag & F_POST) && (server_flag & F_POST_OK)) || \
+               (server_flag & RESPONSE_N)){
+                len = recv(*CTRLsock_server, &server_cmd, PROTOCOL_INFO_SIZE, 0);
+                if(len == SOCKET_ERROR){
+                    errHandler("Sync", "recv error", NO_EXIT);
+                    res = MYERROR;
+                    goto Label_Sync_end;
+                }
+                if(server_cmd.message[0] == PRO_GET){
+                    server_flag |= F_GET;
+                    server_flag &= ~F_POST;
+                }
+                else if(server_cmd.message[0] == PRO_POST){
+                    server_flag |= F_POST;
+                    server_flag &= ~F_GET;
+                }
+                server_flag |= WAIT_RESPONSE;
+            }
         }
         if(FD_ISSET(*CTRLsock_server, &wfd)){ // reply for server's GET or POST
-
+            if(server_flag & WAIT_RESPONSE){
+                server_flag &= ~WAIT_RESPONSE;
+                if(server_cmd.message[0] == PRO_GET){
+                    int test_res = HaveSuchFile(username, &server_cmd, disc_base_path);
+                    if(test_res == MYERROR){
+                        errHandler("Sync", "HaveSuchFile error", NO_EXIT);
+                        res = MYERROR;
+                        goto Label_Sync_end;
+                    }
+                    if(test_res == YES){
+                        server_flag |= RESPONSE_Y;
+                        server_flag &= ~RESPONSE_N;
+                    }
+                    else{
+                        server_flag |= RESPONSE_N;
+                        server_flag &= ~RESPONSE_Y;
+                    }
+                }
+            }
         }
         if(FD_ISSET(*DATAsock_server, &rfd)){ // data from server (server's POST)
-
+            continue; // in initial sync, server won't send POST
         }
         if(FD_ISSET(*DATAsock_server, &wfd)){ // data to server (server's GET)
-
+            if((server_flag & RESPONSE_Y) && (server_flag & F_GET)){
+                if(server_flag & F_GET_OK){
+                    server_flag &= ~F_GET_OK;
+                    //....
+                }
+            }
         }
         if(FD_ISSET(*DATAsock_client, &rfd)){ // data from server (client's GET)
             if((client_flag & RESPONSE_Y) && (client_flag & F_GET)){
@@ -580,6 +622,8 @@ Status FlagInit(int *client_flag, int *server_flag)
     *server_flag |= F_POST;
     *server_flag |= F_GET_OK;
     *server_flag |= F_POST_OK;
+    *server_flag &= ~RESPONSE_Y;
+    *server_flag &= ~RESPONSE_N;
     return OK;
 }
 
