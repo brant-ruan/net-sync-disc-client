@@ -106,11 +106,17 @@ Status errMessage(const char *msg);
 // -----
 Status Identify(char *username, char *password_md5, int username_len, SOCKET *sClient, portType *slisten, char pro_type);
 Status sockConfig(SOCKET *sClient, portType port);
-Status ShowRemoteDir(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, SOCKET *CTRLsock_server, SOCKET *DATAsock_client, char *remote_meta_path);
-Status TransportRemoteDir(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, SOCKET *CTRLsock_server, SOCKET *DATAsock_client, char *remote_meta_path);
-Status InitSync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, SOCKET *CTRLsock_server, SOCKET *DATAsock_client, char *config__path, char *remote_meta_path);
-Status RTSync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, SOCKET *CTRLsock_server, SOCKET *DATAsock_client, char *config_path);
-Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, SOCKET *CTRLsock_server, SOCKET *DATAsock_client, char *strategy_path);
+Status ShowRemoteDir(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
+                     SOCKET *CTRLsock_server, SOCKET *DATAsock_client, char *remote_meta_path);
+Status TransportRemoteDir(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
+                          SOCKET *CTRLsock_server, SOCKET *DATAsock_client, char *remote_meta_path);
+Status InitSync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
+                SOCKET *CTRLsock_server, SOCKET *DATAsock_client, char *config__path, char *remote_meta_path);
+Status RTSync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, SOCKET *CTRLsock_server, \
+              SOCKET *DATAsock_client, char *config_path);
+Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, SOCKET *CTRLsock_server, \
+            SOCKET *DATAsock_client, char *strategy_path, char *config_path);
+Status FlagInit(int *client_flag, int *server_flag);
 // -----
 Status Log(char *message, char *username);
 Status timeGen(char *time);
@@ -132,14 +138,17 @@ Status FileQueuePop(char *dir, FILE *fp, int *path_offset);
 Status LocalMetaGen(char *username, char *config_path, char *local_meta_path);
 Status DisplayFileInfo(char *username, char *remote_meta_path);
 Status FileIgnore(char *filename);
-Status ClientTempRemain(char *username, struct fileInfo *client_file_info, char *tempfile, char *tempfile_info, fileSizeType *tempsize);
+Status ClientTempRemain(char *username, struct fileInfo *client_file_info, char *tempfile, \
+                        char *tempfile_info, fileSizeType *tempsize);
 Status StrategyGen(char *username, Status done_flag, fileSizeType *tempsize, struct fileInfo *client_file_info, \
                    char *local_meta_path, char *remote_meta_path, char *strategy_path, char *config_path);
 Status SameName(char *username, struct fileInfo *special_file, struct fileInfo *hold_file, FILE *fp);
 Status SameMD5(char *username, struct fileInfo *special_file, struct fileInfo *hold_file, FILE *fp);
 Status ChangeName(char *username, struct fileInfo *local_file, char *new_filename, char *config_path);
-Status GETStrategy(char *username, FILE *local_fp, FILE *remote_fp, FILE *strategy_fp, Status flag, struct fileInfo *client_file_info, char *config_path);
+Status GETStrategy(char *username, FILE *local_fp, FILE *remote_fp, FILE *strategy_fp, Status flag, \
+                   struct fileInfo *client_file_info, char *config_path);
 Status POSTStrategy(char *username, FILE *local_fp, FILE *remote_fp, FILE *strategy_fp);
 Status GenGET(char *username, struct protocolInfo *command, struct fileInfo *file_info, fileSizeType offset, FILE *strategy_fp);
 Status GenPOST(char *username, struct protocolInfo *command, struct fileInfo *file_info, FILE *strategy_fp);
+Status POSTFileOpen(char *username, FILE **client_fp, struct protocolInfo *command, fileSizeType *filesize, char *disc_base_path);
 #endif // SYNC-DISC-CLIENT_H_INCLUDED

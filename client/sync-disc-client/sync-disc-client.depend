@@ -33,7 +33,7 @@
 1483081259 source:d:\2linux\network\last\project\client\sync-disc-client\src\main.c
 	"client.h"
 
-1483081309 source:d:\2linux\network\last\project\client\sync-disc-client\src\network.c
+1483097133 source:d:\2linux\network\last\project\client\sync-disc-client\src\network.c
 	"client.h"
 
 1482324725 source:d:\2linux\network\last\project\client\sync-disc-client\src\askinput.c
@@ -48,6 +48,6 @@
 1482843063 source:d:\2linux\network\last\project\client\sync-disc-client\src\prompt.c
 	"client.h"
 
-1483060893 source:d:\2linux\network\last\project\client\sync-disc-client\src\fs.c
+1483097164 source:d:\2linux\network\last\project\client\sync-disc-client\src\fs.c
 	"client.h"
 

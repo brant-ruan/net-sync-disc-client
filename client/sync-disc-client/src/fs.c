@@ -675,3 +675,26 @@ Status GenPOST(char *username, struct protocolInfo *command, \
 
     return OK;
 }
+
+Status POSTFileOpen(char *username, FILE **client_fp, struct protocolInfo *command, \
+                    fileSizeType *filesize, char *disc_base_path)
+{
+    char file_path[BUF_SIZE] = {0};
+    int len;
+    strcpy(file_path, disc_base_path);
+    len = strlen(file_path);
+    int i;
+    for(i = 0; command->message[3 + i] != '\r'; i++)
+        ;
+    strncat(file_path, command->message + 3, i);
+    file_path[len + i] = '\0';
+    *client_fp = fopen(file_path, "rb");
+    if(*client_fp == NULL){
+        errHandler("POSTFileOpen", "fopen error", NO_EXIT);
+        return MYERROR;
+    }
+    fseek(*client_fp, 0, SEEK_END);
+    *filesize = ftell(*client_fp);
+    fseek(*client_fp, 0, SEEK_SET);
+    return OK;
+}
