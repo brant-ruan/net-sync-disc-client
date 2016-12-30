@@ -364,6 +364,7 @@ Status InitSync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server
     return OK;
 }
 
+/* transport files */
 Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
             SOCKET *CTRLsock_server, SOCKET *DATAsock_client, char *strategy_path, char *config_path)
 {
@@ -435,7 +436,7 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
         }
         if(sel == 0)
             continue;
-        if(FD_ISSET(*CTRLsock_client, &rfd)){
+        if(FD_ISSET(*CTRLsock_client, &rfd)){ // reply for client's GET or POST
             if(client_flag & WAIT_RESPONSE){
                 client_flag &= ~WAIT_RESPONSE;
                 len = recv(*CTRLsock_client, response, response_len, 0);
@@ -462,7 +463,7 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
                 }
             }
         }
-        if(FD_ISSET(*CTRLsock_client, &wfd)){
+        if(FD_ISSET(*CTRLsock_client, &wfd)){ // client sends GET or POST
             if(client_flag & STRATEGY_OK)
                 continue; // all is done
             if(((client_flag & F_GET) && (client_flag & F_GET_OK)) || \
@@ -488,44 +489,52 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
                 client_flag |= WAIT_RESPONSE;
             }
         }
-        if(FD_ISSET(*CTRLsock_server, &rfd)){
+        if(FD_ISSET(*CTRLsock_server, &rfd)){ // server send GET or POST
 
         }
-        if(FD_ISSET(*CTRLsock_server, &wfd)){
+        if(FD_ISSET(*CTRLsock_server, &wfd)){ // reply for server's GET or POST
 
         }
-        if(FD_ISSET(*DATAsock_server, &rfd)){
+        if(FD_ISSET(*DATAsock_server, &rfd)){ // data from server (server's POST)
 
         }
-        if(FD_ISSET(*DATAsock_server, &wfd)){
+        if(FD_ISSET(*DATAsock_server, &wfd)){ // data to server (server's GET)
 
         }
-        if(FD_ISSET(*DATAsock_client, &rfd)){
+        if(FD_ISSET(*DATAsock_client, &rfd)){ // data from server (client's GET)
             if((client_flag & RESPONSE_Y) && (client_flag & F_GET)){
                 if(client_flag & F_GET_OK){
                     client_flag &= ~F_GET_OK;
-                    if(GETFileOpen(username, &client_fp, &command, &c_filesize, disc_base_path) == MYERROR){
-                        errHandler("Sync", "POSTFileOpen", NO_EXIT);
+                    if(GETFileOpen(username, &client_fp, &c_filesize, &command) == MYERROR){
+                        errHandler("Sync", "GETFileOpen", NO_EXIT);
                         res = MYERROR;
                         goto Label_Sync_end;
                     }
                     client_already = 0;
                 }
-                len = fread(client_slice, sizeof(char), SLICE_SIZE, client_fp);
-                len = send(*DATAsock_client, client_slice, len, 0);
+                len = recv(*DATAsock_client, client_slice, len, 0);
                 if(len == SOCKET_ERROR){
-                    errHandler("Sync", "send error", NO_EXIT);
+                    errHandler("Sync", "recv error", NO_EXIT);
                     res = MYERROR;
                     goto Label_Sync_end;
+                }
+                len = fwrite(client_slice, sizeof(char), SLICE_SIZE, client_fp);
+                if(len != SLICE_SIZE){
+                    errMessage("Data written is incomplete...");
                 }
                 client_already += len;
                 if(client_already >= c_filesize){
                     fclose(client_fp);
-                    client_flag |= F_POST_OK; // finished
+                    if(MyMoveFile(username, disc_base_path) == MYERROR){
+                        errHandler("Sync", "MoveFile error", NO_EXIT);
+                        res = MYERROR;
+                        goto Label_Sync_end;
+                    }
+                    client_flag |= F_GET_OK; // finished
                 }
             }
         }
-        if(FD_ISSET(DATAsock_client, &wfd)){
+        if(FD_ISSET(DATAsock_client, &wfd)){ // data to server (client's POST)
             if((client_flag & RESPONSE_Y) && (client_flag & F_POST)){
                 if(client_flag & F_POST_OK){
                     client_flag &= ~F_POST_OK;

@@ -676,6 +676,7 @@ Status GenPOST(char *username, struct protocolInfo *command, \
     return OK;
 }
 
+/* open a file for POST */
 Status POSTFileOpen(char *username, FILE **client_fp, struct protocolInfo *command, \
                     fileSizeType *filesize, char *disc_base_path)
 {
@@ -696,5 +697,96 @@ Status POSTFileOpen(char *username, FILE **client_fp, struct protocolInfo *comma
     fseek(*client_fp, 0, SEEK_END);
     *filesize = ftell(*client_fp);
     fseek(*client_fp, 0, SEEK_SET);
+    return OK;
+}
+
+/* move complete temp file to user's disc and delete temp.info file */
+Status MyMoveFile(char *username, char *disc_base_path)
+{
+    char temp_path[BUF_SIZE] = {0};
+    char temp_info_path[BUF_SIZE] = {0};
+    sprintf(temp_path, "./temp/%s.temp", username);
+    sprintf(temp_info_path, "./temp/%s.temp.info", username);
+
+    struct fileInfo file;
+
+    FILE *fp;
+    fp = fopen(temp_info_path, "rb");
+    if(fp == NULL){
+        errHandler("MyMoveFile", "fopen error", NO_EXIT);
+        return MYERROR;
+    }
+
+    fread(&file, sizeof(char), FILE_INFO_SIZE, fp);
+
+    fclose(fp);
+
+    char real_path[BUF_SIZE] = {0};
+    strcpy(real_path, disc_base_path);
+    strcat(real_path, file.filename);
+    char move_cmd[2 * BUF_SIZE] = {0};
+    sprintf(move_cmd, "move %s %s", temp_path, real_path);
+    system(move_cmd);
+
+    return OK;
+}
+
+/* open a temp file for GET */
+Status GETFileOpen(char *username, FILE **client_fp, fileSizeType *c_filesize, struct protocolInfo *command)
+{
+    char temp_path[BUF_SIZE] = {0};
+    char temp_info_path[BUF_SIZE] = {0};
+    struct fileInfo temp_info;
+    fileSizeType offset;
+
+
+    sprintf(temp_path, "./temp/%s.temp", username);
+    sprintf(temp_info_path, "./temp/%s.temp.info", username);
+
+    // open temp file
+    *client_fp = fopen(temp_path, "ab+"); // 'a' is for breakpoint transportation
+    if(*client_fp == NULL){
+        errHandler("GETFileOpen", "fopen error", NO_EXIT);
+        return MYERROR;
+    }
+
+    GET_Cmd2fileInfo(username, &temp_info, &offset, command);
+
+    *c_filesize = temp_info.filesize - offset;
+
+    FILE *info_fp;
+    info_fp = fopen(temp_info_path, "wb");
+    if(info_fp == NULL){
+        errHandler("GETFileOpen", "fopen error", NO_EXIT);
+        return MYERROR;
+    }
+
+    fwrite(&temp_info, sizeof(char), FILE_INFO_SIZE, info_fp);
+    fclose(info_fp);
+
+    return OK;
+}
+
+Status GET_Cmd2fileInfo(char *username, struct fileInfo *temp_info, \
+                        fileSizeType *offset, struct protocolInfo *command)
+{
+    int i, k;
+    for(i = 0; command->message[3 + i] != '\r'; i++){
+        temp_info->filename[i] = command->message[3 + i];
+    }
+    temp_info->filename[i] = '\0';
+    k = 0;
+    for(; command->message[3 + 2 + i] != '\r'; i++){
+        temp_info->md5[k] = command->message[3 + 2 + i];
+        k++;
+    }
+    temp_info->md5[k] = '\0';
+
+    temp_info->filesize = atoi(&(command->message[3 + 2 + 2 + i]));
+
+    for(; command->message[3 + 2 + 2 + i] != '\r'; i++)
+        ;
+    *offset = atoi(&(command->message[3 + 2 + 2 + 2 + i]));
+
     return OK;
 }

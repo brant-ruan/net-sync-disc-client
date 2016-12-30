@@ -151,4 +151,8 @@ Status POSTStrategy(char *username, FILE *local_fp, FILE *remote_fp, FILE *strat
 Status GenGET(char *username, struct protocolInfo *command, struct fileInfo *file_info, fileSizeType offset, FILE *strategy_fp);
 Status GenPOST(char *username, struct protocolInfo *command, struct fileInfo *file_info, FILE *strategy_fp);
 Status POSTFileOpen(char *username, FILE **client_fp, struct protocolInfo *command, fileSizeType *filesize, char *disc_base_path);
+Status GETFileOpen(char *username, FILE **client_fp, fileSizeType *c_filesize, struct protocolInfo *command);
+Status MyMoveFile(char *username, char *disc_base_path);
+Status GET_Cmd2fileInfo(char *username, struct fileInfo *temp_info, \
+                        fileSizeType *offset, struct protocolInfo *command);
 #endif // SYNC-DISC-CLIENT_H_INCLUDED
