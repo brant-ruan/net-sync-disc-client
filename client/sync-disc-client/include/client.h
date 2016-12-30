@@ -48,7 +48,7 @@
 #define BUF_SIZE        256
 
 // when sync, each time 16kb data is sent
-#define SEND_SLICE_SIZE 16 * 1024
+#define SLICE_SIZE 16 * 1024
 
 /* Protocol */
 #define PRO_LOGIN       'A'

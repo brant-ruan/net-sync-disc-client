@@ -252,7 +252,7 @@ typedef struct fd_set {
                     recvbuf[len] = '\0';
                     Log(recvbuf, username);
                     if(recvbuf[0] == PRO_META && recvbuf[3] == 'Y'){
-                        recv_meta_size = atoi(&recvbuf[strlen("F\r\nA\r\n")]);
+                        recv_meta_size = atoi(&recvbuf[strlen("F\r\nY\r\n")]);
                     } // server will send recv_meta_size bytes of meta data
                     else{
                         errHandler("TransportRemoteDir", "Protocol error", NO_EXIT);
@@ -290,7 +290,7 @@ typedef struct fd_set {
         }
     }
     fclose(fp);
-    Log("Receive meta-data from server - OK", username);;
+    Log("Receive meta-data from server - OK", username);
 
     return OK;
 }
@@ -359,35 +359,49 @@ Status InitSync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server
 Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
             SOCKET *CTRLsock_server, SOCKET *DATAsock_client, char *strategy_path)
 {
-    int flag = 0;
-    const int CLIENT_GET = 1;
-    const int CLIENT_POST = 2;
-    const int SEND_OK = 4;
-    const int RECV_OK = 8;
+    int res = OK;
+// ------
+    int client_flag = 0;
+    int server_flag = 0;
+
+    const int F_GET = 1;
+    const int F_POST = 2;
+    const int F_POST_OK = 4;
+    const int F_GET_OK = 8;
     const int STRATEGY_OK = 16;
-    flag |= CLIENT_GET;
-    flag |= CLIENT_POST;
-    flag |= SEND_OK;
-    flag |= RECV_OK;
-    flag &= ~STRATEGY_OK;
-
-    FILE *recv_fp;
-    FILE *send_fp;
-
+    const int WAIT_RESPONSE = 32;
+    client_flag |= F_GET;
+    client_flag |= F_POST;
+    client_flag |= F_POST_OK;
+    client_flag |= F_GET_OK;
+    client_flag &= ~STRATEGY_OK; // important
+    server_flag |= F_GET;
+    server_flag |= F_POST;
+    server_flag |= F_GET_OK;
+    server_flag |= F_POST_OK;
+// ------
+    FILE *client_fp;
+    FILE *server_fp;
     FILE *strategy_fp;
     strategy_fp = fopen(strategy_path, "rb");
     if(strategy_fp == NULL){
         errHandler("Sync", "fopen error", NO_EXIT);
         return MYERROR;
     }
-
+// ------
+    char client_slice[SLICE_SIZE] = {0}; // temp for file
+    char server_slice[SLICE_SIZE] = {0}; // temp for file
+    int response_len = strlen("X\r\nX\r\n\r\n");
+    char response[BUF_SIZE] = {0};
+// ------
     int sel;
     fd_set rfd;
     fd_set wfd;
     int len;
     struct protocolInfo command;
     while(1){
-        if((flag & STRATEGY_OK) && (flag & SEND_OK) && (flag & RECV_OK))
+        if((client_flag & STRATEGY_OK) && (client_flag & F_GET_OK) && (client_flag & F_POST_OK) \
+           && (server_flag & F_GET_OK) && (server_flag & F_POST_OK))
             break;
         FD_ZERO(&rfd);
         FD_ZERO(&wfd);
@@ -408,21 +422,35 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
         if(sel == 0)
             continue;
         if(FD_ISSET(CTRLsock_client, &rfd)){
-
+            if(client_flag & WAIT_RESPONSE){
+                client_flag &= ~WAIT_RESPONSE;
+                len = recv(*CTRLsock_client, response, response_len, 0);
+                if(len == SOCKET_ERROR){
+                    errHandler("Sync", "recv error", NO_EXIT);
+                    res = MYERROR;
+                    goto Label_Sync_end;
+                }
+            }
         }
         if(FD_ISSET(CTRLsock_client, &wfd)){
-            if(flag & STRATEGY_OK) // all commands have been send
-                continue;
-            if(((flag & CLIENT_GET) && (flag & RECV_OK)) ||\
-               ((flag & CLIENT_POST) && (flag & SEND_OK))){
+            if(client_flag & STRATEGY_OK)
+                continue; // all is done
+            if(((client_flag & F_GET) && (client_flag & F_GET_OK)) || \
+               ((client_flag & F_POST) && (client_flag & F_POST_OK))){
                 len = fread(&command, sizeof(char), PROTOCOL_INFO_SIZE, strategy_fp);
                 if(len == 0){
-                    flag |= STRATEGY_OK;
+                    client_flag |= STRATEGY_OK;
                     continue;
                 }
                 if(command.message[0] == PRO_GET){
-
+                    client_flag |= F_GET;
+                    client_flag &= ~F_POST;
                 }
+                else if(command.message[0] == PRO_POST){
+                    client_flag |= F_POST;
+                    client_flag &= ~F_GET;
+                }
+                client_flag |= WAIT_RESPONSE;
             }
         }
         if(FD_ISSET(CTRLsock_server, &rfd)){
@@ -431,16 +459,24 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
         if(FD_ISSET(CTRLsock_server, &wfd)){
 
         }
+        if(FD_ISSET(DATAsock_server, &rfd)){
+
+        }
         if(FD_ISSET(DATAsock_server, &wfd)){
 
         }
         if(FD_ISSET(DATAsock_client, &rfd)){
 
         }
-    }
+        if(FD_ISSET(DATAsock_client, &wfd)){
 
+        }
+    }
+Label_Sync_end:
+    fclose(client_fp);
+    fclose(server_fp);
     fclose(strategy_fp);
-    return OK;
+    return res;
 }
 
 // RTSync - Real Time Sync
