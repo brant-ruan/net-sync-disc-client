@@ -87,6 +87,34 @@ Status BindDir(char *username, char *config_path)
     return OK;
 }
 
+Status DiscLockUp(FILE **lock_fp, char *config_path)
+{
+    FILE *config_fp;
+    config_fp = fopen(config_path, "r");
+    char temp;
+    int k = 0;
+    fseek(config_fp, strlen("LOCALDIR=N\n\nINITSYNC=N\n\nPATH="), SEEK_SET);
+    char disc_path[2 * BUF_SIZE] = {0};
+    while((temp = fgetc(config_fp)) != EOF && temp != '\n')
+        disc_path[k++] = temp;
+    disc_path[k] = '\0';
+    strcat(disc_path, "/DISC.LOCK");
+    unlink(disc_path);
+    *lock_fp = fopen(disc_path, "w");
+    if(*lock_fp == NULL){
+        errHandler("DiscLockUp", "fopen error", NO_EXIT);
+        return MYERROR;
+    }
+
+    return OK;
+}
+
+Status DiscLockDown(FILE *lock_fp)
+{
+    fclose(lock_fp);
+    return OK;
+}
+
 /* Check whether the Initial sync has been done */
 Status IsInitSyncDone(char *config_path)
 {

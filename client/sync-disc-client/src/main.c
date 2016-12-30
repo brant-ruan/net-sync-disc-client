@@ -63,19 +63,6 @@ Label_begin:
     default:
         break;
     }
-    // configure socket
-    if(sockConfig(&DATAsock_send, slisten) == MYERROR){
-        errHandler("main", "ConfigDataSock error", NO_EXIT);
-        goto Label_end;
-    }
-    if(sockConfig(&CTRLsock_recv, slisten) == MYERROR){
-        errHandler("main", "ConfigDataSock error", NO_EXIT);
-        goto Label_end;
-    }
-    if(sockConfig(&DATAsock_recv, slisten) == MYERROR){
-        errHandler("main", "ConfigDataSock error", NO_EXIT);
-        goto Label_end;
-    }
     char config_path[BUF_SIZE] = {0};
     char remote_meta_path[BUF_SIZE] = {0};
     if(ConfigUser(username, config_path) == MYERROR){
@@ -89,6 +76,27 @@ Label_begin:
     /** here you should lock the disc (open a file in disc)
         remains to be done
      **/
+    // open a file in the user's disc directory
+    FILE *lock_fp;
+    if(DiscLockUp(&lock_fp, config_path) == MYERROR){
+        errHandler("main", "DiscLockUp error", NO_EXIT);
+        goto Label_end;
+    }
+
+    // configure socket
+    if(sockConfig(&DATAsock_send, slisten) == MYERROR){
+        errHandler("main", "ConfigDataSock error", NO_EXIT);
+        goto Label_end;
+    }
+    if(sockConfig(&CTRLsock_recv, slisten) == MYERROR){
+        errHandler("main", "ConfigDataSock error", NO_EXIT);
+        goto Label_end;
+    }
+    if(sockConfig(&DATAsock_recv, slisten) == MYERROR){
+        errHandler("main", "ConfigDataSock error", NO_EXIT);
+        goto Label_end;
+    }
+
     if(ShowRemoteDir(username, &CTRLsock_send, &DATAsock_send, &CTRLsock_recv, &DATAsock_recv, remote_meta_path) == MYERROR){
         errHandler("main", "ShowRemoteDir error", NO_EXIT);
         goto Label_end;
@@ -109,6 +117,7 @@ Label_begin:
 
 
 Label_end:
+    DiscLockDown(lock_fp);
     unlink(remote_meta_path);
     closesocket(CTRLsock_send);
     closesocket(DATAsock_send);

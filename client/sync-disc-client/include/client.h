@@ -110,7 +110,7 @@ Status ShowRemoteDir(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_sen
 Status TransportRemoteDir(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *remote_meta_path);
 Status InitSync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *config__path, char *remote_meta_path);
 Status RTSync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *config_path);
-Status Sync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, Status done_flag, char *strategy_path);
+Status Sync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *strategy_path);
 // -----
 Status Log(char *message, char *username);
 Status timeGen(char *time);
@@ -123,6 +123,8 @@ void DiscDirPrompt(char* username);
 Status ConfigUser(char *username, char *config_path);
 Status UnbindDir(char *username, char *config_path);
 Status BindDir(char *username, char *config_path);
+Status DiscLockUp(FILE **lock_fp, char *config_path);
+Status DiscLockDown(FILE *lock_fp);
 Status IsInitSyncDone(char *config_path);
 Status SetInitSyncDone(char *username, char *config_path);
 Status FileQueuePush(char *dir, FILE *fp);

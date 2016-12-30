@@ -97,7 +97,6 @@ Status Identify(char *username, char *password_md5, int username_len, \
                 SOCKET *sClient, portType *slisten, char pro_type)
 {
     UIDInit();
-
     if(sockConfig(sClient, SERVER_MAIN_PORT) == MYERROR){
         errHandler("Identify", "sockConfig error", NO_EXIT);
         WSACleanup();
@@ -343,8 +342,8 @@ Status InitSync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SO
         return MYERROR;
     }
 
-    // client should ponder if it lose connection with server, it should take note of the breakpoint
-    if(Sync(username, CTRLsock_send, CTRLsock_recv, DATAsock_send, DATAsock_recv, done_flag, strategy_path) == MYERROR){
+    // client should ponder if it lose connection with server
+    if(Sync(username, CTRLsock_send, CTRLsock_recv, DATAsock_send, DATAsock_recv, strategy_path) == MYERROR){
         errHandler("InitSync", "Sync error", NO_EXIT);
         return MYERROR;
     }
@@ -358,8 +357,87 @@ Status InitSync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SO
 }
 
 Status Sync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, \
-            SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, Status done_flag, char *strategy_path)
+            SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *strategy_path)
 {
+    int flag = 0;
+    const int COMMAND_GET = 1;
+    const int COMMAND_POST = 2;
+    const int SEND_OK = 4;
+    const int RECV_OK = 8;
+    const int STRATEGY_OK = 16;
+    flag |= COMMAND_GET;
+    flag |= COMMAND_POST;
+    flag |= SEND_OK;
+    flag |= RECV_OK;
+    flag &= ~STRATEGY_OK;
+
+    FILE *recv_fp;
+    FILE *send_fp;
+
+    FILE *strategy_fp;
+    strategy_fp = fopen(strategy_path, "rb");
+    if(strategy_fp == NULL){
+        errHandler("Sync", "fopen error", NO_EXIT);
+        return MYERROR;
+    }
+
+    int sel;
+    fd_set rfd;
+    fd_set wfd;
+    int len;
+    struct protocolInfo command;
+    while(1){
+        if((flag & STRATEGY_OK) && (flag & SEND_OK) && (flag & RECV_OK))
+            break;
+        FD_ZERO(&rfd);
+        FD_ZERO(&wfd);
+        FD_SET(CTRLsock_send, &rfd);
+        FD_SET(CTRLsock_send, &wfd);
+        FD_SET(CTRLsock_recv, &rfd);
+        FD_SET(CTRLsock_recv, &wfd);
+        FD_SET(DATAsock_send, &wfd);
+        FD_SET(DATAsock_recv, &rfd);
+
+        sel = select(0, &rfd, &wfd, NULL, 0);
+        if(sel = SOCKET_ERROR){
+            errHandler("Sync", "select error", NO_EXIT);
+            return MYERROR;
+        }
+        if(sel == 0)
+            continue;
+        if(FD_ISSET(CTRLsock_send, &rfd)){
+
+        }
+        if(FD_ISSET(CTRLsock_send, &wfd)){
+            if(flag & STRATEGY_OK) // all commands have been send
+                continue;
+            if(((flag & COMMAND_GET) && (flag & RECV_OK)) ||\
+               ((flag & COMMAND_POST) && (flag & SEND_OK))){
+                len = fread(&command, sizeof(char), PROTOCOL_INFO_SIZE, strategy_fp);
+                if(len == 0){
+                    flag |= STRATEGY_OK;
+                    continue;
+                }
+                if(command.message[0] == PRO_GET){
+
+                }
+            }
+        }
+        if(FD_ISSET(CTRLsock_recv, &rfd)){
+
+        }
+        if(FD_ISSET(CTRLsock_recv, &wfd)){
+
+        }
+        if(FD_ISSET(DATAsock_send, &wfd)){
+
+        }
+        if(FD_ISSET(DATAsock_recv, &rfd)){
+
+        }
+    }
+
+    fclose(strategy_fp);
     return OK;
 }
 
