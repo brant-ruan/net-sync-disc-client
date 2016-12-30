@@ -31,29 +31,29 @@ Label_begin:
     /* Prompt and ask for an option */
     opt_sel = optSel();
 
-    SOCKET CTRLsock_send;
+    SOCKET CTRLsock_client;
     // SOCKET BEATsock;
-    SOCKET DATAsock_send;
-    SOCKET CTRLsock_recv;
-    SOCKET DATAsock_recv;
+    SOCKET DATAsock_server;
+    SOCKET CTRLsock_server;
+    SOCKET DATAsock_client;
     portType slisten;
 
     switch(opt_sel){
     case OP_LOGIN:
-        if(Login(username, password, &CTRLsock_send, &slisten) == MYERROR){
+        if(Login(username, password, &CTRLsock_client, &slisten) == MYERROR){
             errMessage("[username] or [password] not correct.");
             getchar();
             WSACleanup();
-            closesocket(CTRLsock_send);
+            closesocket(CTRLsock_client);
             goto Label_begin;
         }
         break;
     case OP_SIGNUP:
-        if(Signup(username, password, &CTRLsock_send, &slisten) == MYERROR){
+        if(Signup(username, password, &CTRLsock_client, &slisten) == MYERROR){
             errMessage("[username] has been used or you canceled signup.");
             getchar();
             WSACleanup();
-            closesocket(CTRLsock_send);
+            closesocket(CTRLsock_client);
             goto Label_begin;
         }
         break;
@@ -84,31 +84,31 @@ Label_begin:
     }
 
     // configure socket
-    if(sockConfig(&DATAsock_send, slisten) == MYERROR){
+    if(sockConfig(&DATAsock_server, slisten) == MYERROR){
         errHandler("main", "ConfigDataSock error", NO_EXIT);
         goto Label_end;
     }
-    if(sockConfig(&CTRLsock_recv, slisten) == MYERROR){
+    if(sockConfig(&CTRLsock_server, slisten) == MYERROR){
         errHandler("main", "ConfigDataSock error", NO_EXIT);
         goto Label_end;
     }
-    if(sockConfig(&DATAsock_recv, slisten) == MYERROR){
+    if(sockConfig(&DATAsock_client, slisten) == MYERROR){
         errHandler("main", "ConfigDataSock error", NO_EXIT);
         goto Label_end;
     }
 
-    if(ShowRemoteDir(username, &CTRLsock_send, &DATAsock_send, &CTRLsock_recv, &DATAsock_recv, remote_meta_path) == MYERROR){
+    if(ShowRemoteDir(username, &CTRLsock_client, &DATAsock_server, &CTRLsock_server, &DATAsock_client, remote_meta_path) == MYERROR){
         errHandler("main", "ShowRemoteDir error", NO_EXIT);
         goto Label_end;
     }
 
-    if(InitSync(username, &CTRLsock_send, &DATAsock_send, &CTRLsock_recv, &DATAsock_recv, config_path, remote_meta_path) == MYERROR){
+    if(InitSync(username, &CTRLsock_client, &DATAsock_server, &CTRLsock_server, &DATAsock_client, config_path, remote_meta_path) == MYERROR){
         errHandler("main", "InitSync error", NO_EXIT);
         goto Label_end;
     }
 
     /* real time sync */
-    if(RTSync(username, &CTRLsock_send, &DATAsock_send, &CTRLsock_recv, &DATAsock_recv, config_path) == MYERROR){
+    if(RTSync(username, &CTRLsock_client, &DATAsock_server, &CTRLsock_server, &DATAsock_client, config_path) == MYERROR){
     /* only when error happens RTSync return MYERROR,
        or it will keep an iteration until user asks to log out */
         errHandler("main", "RTSync", NO_EXIT);
@@ -119,10 +119,10 @@ Label_begin:
 Label_end:
     DiscLockDown(lock_fp);
     unlink(remote_meta_path);
-    closesocket(CTRLsock_send);
-    closesocket(DATAsock_send);
-    closesocket(CTRLsock_recv);
-    closesocket(DATAsock_recv);
+    closesocket(CTRLsock_client);
+    closesocket(DATAsock_server);
+    closesocket(CTRLsock_server);
+    closesocket(DATAsock_client);
     WSACleanup();
 
 	return OK;

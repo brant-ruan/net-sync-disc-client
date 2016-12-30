@@ -106,11 +106,11 @@ Status errMessage(const char *msg);
 // -----
 Status Identify(char *username, char *password_md5, int username_len, SOCKET *sClient, portType *slisten, char pro_type);
 Status sockConfig(SOCKET *sClient, portType port);
-Status ShowRemoteDir(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *remote_meta_path);
-Status TransportRemoteDir(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *remote_meta_path);
-Status InitSync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *config__path, char *remote_meta_path);
-Status RTSync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *config_path);
-Status Sync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *strategy_path);
+Status ShowRemoteDir(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, SOCKET *CTRLsock_server, SOCKET *DATAsock_client, char *remote_meta_path);
+Status TransportRemoteDir(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, SOCKET *CTRLsock_server, SOCKET *DATAsock_client, char *remote_meta_path);
+Status InitSync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, SOCKET *CTRLsock_server, SOCKET *DATAsock_client, char *config__path, char *remote_meta_path);
+Status RTSync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, SOCKET *CTRLsock_server, SOCKET *DATAsock_client, char *config_path);
+Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, SOCKET *CTRLsock_server, SOCKET *DATAsock_client, char *strategy_path);
 // -----
 Status Log(char *message, char *username);
 Status timeGen(char *time);

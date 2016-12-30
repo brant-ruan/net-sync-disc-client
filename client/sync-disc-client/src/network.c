@@ -158,13 +158,13 @@ Status Identify(char *username, char *password_md5, int username_len, \
 }
 
 /* ask the server to send its net-disc directory and client will show it */
-Status ShowRemoteDir(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, \
-                     SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *remote_meta_path)
+Status ShowRemoteDir(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
+                     SOCKET *CTRLsock_server, SOCKET *DATAsock_client, char *remote_meta_path)
 {
     sprintf(remote_meta_path, "./remote-meta/%s.meta", username);
     unlink(remote_meta_path); // if the file already exists, unlink it
 
-    if(TransportRemoteDir(username, CTRLsock_send, DATAsock_send, CTRLsock_recv, DATAsock_recv, remote_meta_path) == MYERROR){
+    if(TransportRemoteDir(username, CTRLsock_client, DATAsock_server, CTRLsock_server, DATAsock_client, remote_meta_path) == MYERROR){
         errHandler("ShowRemoteDir", "TransportRemoteDir error", NO_EXIT);
         return MYERROR;
     }
@@ -178,8 +178,8 @@ Status ShowRemoteDir(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_sen
 }
 
 /* client ask server to send file meta data and store it into a file */
-Status TransportRemoteDir(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, \
-                          SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *remote_meta_path)
+Status TransportRemoteDir(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
+                          SOCKET *CTRLsock_server, SOCKET *DATAsock_client, char *remote_meta_path)
 {
     const char SEND_REQUEST = 1;
     const char RECV_ANSWER  = 2;
@@ -219,9 +219,9 @@ typedef struct fd_set {
     So it seems that FILE *fp is not the same as SOCKET type...
     So you can't use select() for FILE* fp (Windows is not linux)
 */
-        FD_SET(*CTRLsock_send, &wfd);
-        FD_SET(*CTRLsock_send, &rfd);
-        FD_SET(*DATAsock_recv, &rfd);
+        FD_SET(*CTRLsock_client, &wfd);
+        FD_SET(*CTRLsock_client, &rfd);
+        FD_SET(*DATAsock_client, &rfd);
         sel = select(0, &rfd, &wfd, NULL, 0);
 		if (sel == SOCKET_ERROR) {
 			errHandler("TransportRemoteDir", "select error", NO_EXIT);
@@ -229,9 +229,9 @@ typedef struct fd_set {
 			return MYERROR;
 		}
         if(sel > 0){
-            if(FD_ISSET(*CTRLsock_send, &wfd)){
+            if(FD_ISSET(*CTRLsock_client, &wfd)){
                 if(!(flag & SEND_REQUEST)){ // send protocol request
-                    len = send(*CTRLsock_send, sendbuf, strlen(sendbuf), 0);
+                    len = send(*CTRLsock_client, sendbuf, strlen(sendbuf), 0);
                     if(len == SOCKET_ERROR){
                         errHandler("TransportRemoteDir", "send error", NO_EXIT);
                         fclose(fp);
@@ -241,9 +241,9 @@ typedef struct fd_set {
                     flag |= SEND_REQUEST;
                 }
             }
-            if(FD_ISSET(*CTRLsock_send, &rfd)){
+            if(FD_ISSET(*CTRLsock_client, &rfd)){
                 if((flag & SEND_REQUEST) && !(flag & RECV_ANSWER)){ // receive protocol answer
-                    len = recv(*CTRLsock_send, recvbuf, BUF_SIZE - 1, 0);
+                    len = recv(*CTRLsock_client, recvbuf, BUF_SIZE - 1, 0);
                     if(len == SOCKET_ERROR){
                         errHandler("TransportRemoteDir", "recv error", NO_EXIT);
                         fclose(fp);
@@ -262,9 +262,9 @@ typedef struct fd_set {
                     flag |= RECV_ANSWER;
                 }
             }
-            if((flag & SEND_REQUEST) && (flag & RECV_ANSWER) && FD_ISSET(*DATAsock_recv, &rfd)){
+            if((flag & SEND_REQUEST) && (flag & RECV_ANSWER) && FD_ISSET(*DATAsock_client, &rfd)){
                 if(recv_already_len < recv_meta_size && recv_write_len == 0){
-                    recv_write_len = recv(*DATAsock_recv, recvbuf, BUF_SIZE, 0);
+                    recv_write_len = recv(*DATAsock_client, recvbuf, BUF_SIZE, 0);
                     if(recv_write_len == SOCKET_ERROR){
                         errHandler("TransportRemoteDir", "recv error", NO_EXIT);
                         fclose(fp);
@@ -296,8 +296,8 @@ typedef struct fd_set {
 }
 
 /* remember that after InitSync you need set INITSYNC=1 In conf */
-Status InitSync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SOCKET *CTRLsock_recv, \
-                SOCKET *DATAsock_recv, char *config_path, char *remote_meta_path)
+Status InitSync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, SOCKET *CTRLsock_server, \
+                SOCKET *DATAsock_client, char *config_path, char *remote_meta_path)
 {
     // if Initial sync has been done , then return directly
     Status done_flag = IsInitSyncDone(config_path);
@@ -343,7 +343,7 @@ Status InitSync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SO
     }
 
     // client should ponder if it lose connection with server
-    if(Sync(username, CTRLsock_send, CTRLsock_recv, DATAsock_send, DATAsock_recv, strategy_path) == MYERROR){
+    if(Sync(username, CTRLsock_client, CTRLsock_server, DATAsock_server, DATAsock_client, strategy_path) == MYERROR){
         errHandler("InitSync", "Sync error", NO_EXIT);
         return MYERROR;
     }
@@ -356,17 +356,17 @@ Status InitSync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, SO
     return OK;
 }
 
-Status Sync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, \
-            SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *strategy_path)
+Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
+            SOCKET *CTRLsock_server, SOCKET *DATAsock_client, char *strategy_path)
 {
     int flag = 0;
-    const int COMMAND_GET = 1;
-    const int COMMAND_POST = 2;
+    const int CLIENT_GET = 1;
+    const int CLIENT_POST = 2;
     const int SEND_OK = 4;
     const int RECV_OK = 8;
     const int STRATEGY_OK = 16;
-    flag |= COMMAND_GET;
-    flag |= COMMAND_POST;
+    flag |= CLIENT_GET;
+    flag |= CLIENT_POST;
     flag |= SEND_OK;
     flag |= RECV_OK;
     flag &= ~STRATEGY_OK;
@@ -391,28 +391,30 @@ Status Sync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, \
             break;
         FD_ZERO(&rfd);
         FD_ZERO(&wfd);
-        FD_SET(CTRLsock_send, &rfd);
-        FD_SET(CTRLsock_send, &wfd);
-        FD_SET(CTRLsock_recv, &rfd);
-        FD_SET(CTRLsock_recv, &wfd);
-        FD_SET(DATAsock_send, &wfd);
-        FD_SET(DATAsock_recv, &rfd);
+        FD_SET(*CTRLsock_client, &rfd);
+        FD_SET(*CTRLsock_client, &wfd);
+        FD_SET(*CTRLsock_server, &rfd);
+        FD_SET(*CTRLsock_server, &wfd);
+        FD_SET(*DATAsock_server, &rfd);
+        FD_SET(*DATAsock_server, &wfd);
+        FD_SET(*DATAsock_client, &rfd);
+        FD_SET(*DATAsock_client, &wfd);
 
         sel = select(0, &rfd, &wfd, NULL, 0);
-        if(sel = SOCKET_ERROR){
+        if(sel == SOCKET_ERROR){
             errHandler("Sync", "select error", NO_EXIT);
             return MYERROR;
         }
         if(sel == 0)
             continue;
-        if(FD_ISSET(CTRLsock_send, &rfd)){
+        if(FD_ISSET(CTRLsock_client, &rfd)){
 
         }
-        if(FD_ISSET(CTRLsock_send, &wfd)){
+        if(FD_ISSET(CTRLsock_client, &wfd)){
             if(flag & STRATEGY_OK) // all commands have been send
                 continue;
-            if(((flag & COMMAND_GET) && (flag & RECV_OK)) ||\
-               ((flag & COMMAND_POST) && (flag & SEND_OK))){
+            if(((flag & CLIENT_GET) && (flag & RECV_OK)) ||\
+               ((flag & CLIENT_POST) && (flag & SEND_OK))){
                 len = fread(&command, sizeof(char), PROTOCOL_INFO_SIZE, strategy_fp);
                 if(len == 0){
                     flag |= STRATEGY_OK;
@@ -423,16 +425,16 @@ Status Sync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, \
                 }
             }
         }
-        if(FD_ISSET(CTRLsock_recv, &rfd)){
+        if(FD_ISSET(CTRLsock_server, &rfd)){
 
         }
-        if(FD_ISSET(CTRLsock_recv, &wfd)){
+        if(FD_ISSET(CTRLsock_server, &wfd)){
 
         }
-        if(FD_ISSET(DATAsock_send, &wfd)){
+        if(FD_ISSET(DATAsock_server, &wfd)){
 
         }
-        if(FD_ISSET(DATAsock_recv, &rfd)){
+        if(FD_ISSET(DATAsock_client, &rfd)){
 
         }
     }
@@ -443,8 +445,8 @@ Status Sync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, \
 
 // RTSync - Real Time Sync
 /* log out will happen in this function */
-Status RTSync(char *username, SOCKET *CTRLsock_send, SOCKET *DATAsock_send, \
-              SOCKET *CTRLsock_recv, SOCKET *DATAsock_recv, char *config_path)
+Status RTSync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
+              SOCKET *CTRLsock_server, SOCKET *DATAsock_client, char *config_path)
 {
 
     return OK;
