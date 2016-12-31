@@ -20,6 +20,7 @@ const int STRATEGY_OK = 16;
 const int WAIT_RESPONSE = 32;
 const int RESPONSE_Y = 64;
 const int RESPONSE_N = 128;
+const int F_INIT = 256;
 /*
  * Function:
  *  use `ipconfig /all > ipconfig_tmp.dat`
@@ -473,7 +474,9 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
             }
             if(((client_flag & F_GET) && (client_flag & F_GET_OK)) || \
                ((client_flag & F_POST) && (client_flag & F_POST_OK)) || \
-                (client_flag & RESPONSE_N)){
+                (client_flag & RESPONSE_N) || \
+               (client_flag & F_INIT)){
+                client_flag &= ~F_INIT;
                 len = fread(&command, sizeof(char), PROTOCOL_INFO_SIZE, strategy_fp);
                 if(len == 0){
                     client_flag |= STRATEGY_OK;
@@ -497,7 +500,9 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
         if(FD_ISSET(*CTRLsock_server, &rfd)){ // server send GET or POST
             if(((server_flag & F_GET) && (server_flag & F_GET_OK)) || \
                ((server_flag & F_POST) && (server_flag & F_POST_OK)) || \
-               (server_flag & RESPONSE_N)){
+               (server_flag & RESPONSE_N) || \
+               (server_flag & F_INIT)){
+                server_flag &= ~F_INIT;
                 len = recv(*CTRLsock_server, (char *)&server_cmd, PROTOCOL_INFO_SIZE, 0);
                 if(len == SOCKET_ERROR){
                     errHandler("Sync", "recv error", NO_EXIT);
@@ -638,15 +643,17 @@ Status FlagInit(int *client_flag, int *server_flag)
 {
     *client_flag |= F_GET;
     *client_flag |= F_POST;
-    *client_flag |= F_POST_OK;
-    *client_flag |= F_GET_OK;
+    *client_flag |= F_INIT;
+//    *client_flag |= F_POST_OK;
+//    *client_flag |= F_GET_OK;
     *client_flag &= ~STRATEGY_OK; // important
     *client_flag &= ~RESPONSE_Y;
     *client_flag &= ~RESPONSE_N;
     *server_flag |= F_GET;
     *server_flag |= F_POST;
-    *server_flag |= F_GET_OK;
-    *server_flag |= F_POST_OK;
+    *server_flag |= F_INIT;
+//    *server_flag |= F_GET_OK;
+//    *server_flag |= F_POST_OK;
     *server_flag &= ~RESPONSE_Y;
     *server_flag &= ~RESPONSE_N;
     return OK;
