@@ -418,8 +418,7 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
     struct protocolInfo command;
     struct protocolInfo server_cmd;
     while(1){
-        if((client_flag & STRATEGY_OK) && (client_flag & F_GET_OK) && (client_flag & F_POST_OK) \
-           && (server_flag & F_GET_OK) && (server_flag & F_POST_OK))
+        if((client_flag & STRATEGY_OK)) // here
             break;
         FD_ZERO(&rfd);
         FD_ZERO(&wfd);
