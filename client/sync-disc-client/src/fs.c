@@ -793,5 +793,5 @@ Status GET_Cmd2fileInfo(char *username, struct fileInfo *temp_info, \
 
 Status HaveSuchFile(char *username, struct protocolInfo *server_cmd, char *disc_base_path)
 {
-    return OK:
+    return OK;
 }

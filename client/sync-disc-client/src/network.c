@@ -494,7 +494,7 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
             if(((server_flag & F_GET) && (server_flag & F_GET_OK)) || \
                ((server_flag & F_POST) && (server_flag & F_POST_OK)) || \
                (server_flag & RESPONSE_N)){
-                len = recv(*CTRLsock_server, &server_cmd, PROTOCOL_INFO_SIZE, 0);
+                len = recv(*CTRLsock_server, (char *)&server_cmd, PROTOCOL_INFO_SIZE, 0);
                 if(len == SOCKET_ERROR){
                     errHandler("Sync", "recv error", NO_EXIT);
                     res = MYERROR;
