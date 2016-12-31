@@ -767,6 +767,7 @@ Status GETFileOpen(char *username, FILE **client_fp, fileSizeType *c_filesize, s
     return OK;
 }
 
+/* parse information in a GET protocol and stores it in a fileInfo */
 Status GET_Cmd2fileInfo(char *username, struct fileInfo *temp_info, \
                         fileSizeType *offset, struct protocolInfo *command)
 {
@@ -791,7 +792,47 @@ Status GET_Cmd2fileInfo(char *username, struct fileInfo *temp_info, \
     return OK;
 }
 
+/* Judge whether there is a such file asked by server in client's disc directory */
 Status HaveSuchFile(char *username, struct protocolInfo *server_cmd, char *disc_base_path)
 {
+    struct fileInfo myfile;
+    fileSizeType offset;
+
+    GET_Cmd2fileInfo(username, &myfile, &offset, server_cmd);
+
+    char file_path[BUF_SIZE] = {0};
+    strcpy(file_path, disc_base_path);
+    strcpy(file_path, myfile.filename);
+    FILE *fp;
+    fp = fopen(file_path, "r");
+    if(fp == NULL){
+        return NO; // do not have such file
+    }
+
+    fclose(fp);
+    return YES; // have such file
+}
+
+Status GETFileOpen2Server(char *username, FILE **server_fp, fileSizeType *s_filesize, \
+                          struct protocolInfo *server_cmd, char *disc_base_path)
+{
+    struct fileInfo myfile;
+    fileSizeType offset;
+
+    GET_Cmd2fileInfo(username, &myfile, &offset, server_cmd);
+
+    char file_path[BUF_SIZE] = {0};
+    strcpy(file_path, disc_base_path);
+    strcpy(file_path, myfile.filename);
+    *server_fp = fopen(file_path, "r");
+    if(*server_fp == NULL){
+        errHandler("GETFileOpen2Server", "fopen error", NO_EXIT);
+        return MYERROR; // do not have such file
+    }
+
+    *s_filesize = myfile.filesize - offset;
+
+    fseek(*server_fp, offset, SEEK_SET);
+
     return OK;
 }

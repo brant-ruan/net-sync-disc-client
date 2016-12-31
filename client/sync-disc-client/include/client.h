@@ -156,4 +156,6 @@ Status MyMoveFile(char *username, char *disc_base_path);
 Status GET_Cmd2fileInfo(char *username, struct fileInfo *temp_info, \
                         fileSizeType *offset, struct protocolInfo *command);
 Status HaveSuchFile(char *username, struct protocolInfo *server_cmd, char *disc_base_path);
+Status GETFileOpen2Server(char *username, FILE **server_fp, fileSizeType *s_filesize, \
+                          struct protocolInfo *server_cmd, char *disc_base_path);
 #endif // SYNC-DISC-CLIENT_H_INCLUDED

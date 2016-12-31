@@ -407,7 +407,8 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
 // ------
     fileSizeType c_filesize;
     fileSizeType client_already;
-
+    fileSizeType s_filesize;
+    fileSizeType server_already;
 // ------
     int sel;
     fd_set rfd;
@@ -465,8 +466,11 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
             }
         }
         if(FD_ISSET(*CTRLsock_client, &wfd)){ // client sends GET or POST
-            if(client_flag & STRATEGY_OK)
+            if(client_flag & STRATEGY_OK){
+                client_flag &= ~F_GET;
+                client_flag &= ~F_POST;
                 continue; // all is done
+            }
             if(((client_flag & F_GET) && (client_flag & F_GET_OK)) || \
                ((client_flag & F_POST) && (client_flag & F_POST_OK)) || \
                 (client_flag & RESPONSE_N)){
@@ -515,7 +519,7 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
             if(server_flag & WAIT_RESPONSE){
                 server_flag &= ~WAIT_RESPONSE;
                 if(server_cmd.message[0] == PRO_GET){
-                    int test_res = HaveSuchFile(username, &server_cmd, disc_base_path);
+                    Status test_res = HaveSuchFile(username, &server_cmd, disc_base_path);
                     if(test_res == MYERROR){
                         errHandler("Sync", "HaveSuchFile error", NO_EXIT);
                         res = MYERROR;
@@ -530,6 +534,10 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
                         server_flag &= ~RESPONSE_Y;
                     }
                 }
+                if(server_cmd.message[0] == PRO_POST){
+                    errMessage("Oops... Sever [POST] something...");
+                    continue;
+                }
             }
         }
         if(FD_ISSET(*DATAsock_server, &rfd)){ // data from server (server's POST)
@@ -539,7 +547,24 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
             if((server_flag & RESPONSE_Y) && (server_flag & F_GET)){
                 if(server_flag & F_GET_OK){
                     server_flag &= ~F_GET_OK;
-                    //....
+                    if(GETFileOpen2Server(username, &server_fp, &s_filesize, &server_cmd, disc_base_path) == MYERROR){
+                        errHandler("Sync", "GETFileOpen2Server error", NO_EXIT);
+                        res = MYERROR;
+                        goto Label_Sync_end;
+                    }
+                    server_already = 0;
+                }
+                len = fread(server_slice, sizeof(char), SLICE_SIZE, server_fp);
+                len = send(*DATAsock_server, server_slice, len, 0);
+                if(len == SOCKET_ERROR){
+                    errHandler("Sync", "send error", NO_EXIT);
+                    res = MYERROR;
+                    goto Label_Sync_end;
+                }
+                server_already += len;
+                if(server_already >= s_filesize){
+                    fclose(server_fp);
+                    server_flag |= F_GET_OK;
                 }
             }
         }
