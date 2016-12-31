@@ -564,7 +564,6 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
             if((server_flag & RESPONSE_Y) && (server_flag & F_GET)){
                 if(server_flag & F_NEW){
                     server_flag &= ~F_NEW;
-                    server_flag &= ~RESPONSE_Y;
                     if(GETFileOpen2Server(username, &server_fp, &s_filesize, &server_cmd, disc_base_path) == MYERROR){
                         errHandler("Sync", "GETFileOpen2Server error", NO_EXIT);
                         res = MYERROR;
@@ -583,6 +582,7 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
                 if(server_already >= s_filesize){
                     fclose(server_fp);
                     server_flag |= F_GET_OK;
+                    server_flag &= ~RESPONSE_Y;
                 }
             }
         }
@@ -621,11 +621,11 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
                 }
             }
         }
-        if(FD_ISSET(DATAsock_client, &wfd)){ // data to server (client's POST)
+        if(FD_ISSET(*DATAsock_client, &wfd)){ // data to server (client's POST)
             if((client_flag & RESPONSE_Y) && (client_flag & F_POST)){
                 printf("arrive here?\n");
-                if(client_flag & F_POST_OK){
-                    client_flag &= ~F_POST_OK;
+                if(client_flag & F_NEW){
+                    client_flag &= ~F_NEW;
                     if(POSTFileOpen(username, &client_fp, &command, &c_filesize, disc_base_path) == MYERROR){
                         errHandler("Sync", "POSTFileOpen", NO_EXIT);
                         res = MYERROR;
@@ -644,6 +644,7 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
                 if(client_already >= c_filesize){
                     fclose(client_fp);
                     client_flag |= F_POST_OK; // finished
+                    client_flag &= ~RESPONSE_Y;
                 }
             }
         }
