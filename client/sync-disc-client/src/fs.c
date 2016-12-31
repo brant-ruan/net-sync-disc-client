@@ -705,7 +705,7 @@ Status MyMoveFile(char *username, char *disc_base_path)
 {
     char temp_path[BUF_SIZE] = {0};
     char temp_info_path[BUF_SIZE] = {0};
-    sprintf(temp_path, "./temp/%s.temp", username);
+    sprintf(temp_path, ".\\temp\\%s.temp", username);
     sprintf(temp_info_path, "./temp/%s.temp.info", username);
 
     struct fileInfo file;
@@ -724,10 +724,30 @@ Status MyMoveFile(char *username, char *disc_base_path)
     char real_path[BUF_SIZE] = {0};
     strcpy(real_path, disc_base_path);
     strcat(real_path, file.filename);
-    char move_cmd[2 * BUF_SIZE] = {0};
-    sprintf(move_cmd, "move %s %s", temp_path, real_path);
-    system(move_cmd);
+    char cmd[2 * BUF_SIZE] = {0};
+    char mkdir_path[BUF_SIZE] = {0};
+    strcpy(mkdir_path, real_path);
+    int i = strlen(mkdir_path) - 1;
+    int flag = 1;
+    for(; i >= 0; i--){
+        if(mkdir_path[i] == '/'){
+            flag = 0;
+            mkdir_path[i] = '\\';
+        }
+        if(flag == 1)
+            mkdir_path[i] = '\0';
+    }
+    // mkdir
+    sprintf(cmd, "mkdir %s", mkdir_path);
+    printf("mkdir: %s\n", mkdir_path);
+    system(cmd);
 
+    // move file
+    sprintf(cmd, "move %s %s", temp_path, real_path);
+    printf("In move: temp_path: %s, real_path: %s", temp_path, real_path);
+    system(cmd);
+    printf("move ok\n");
+    unlink(temp_info_path);
     return OK;
 }
 
@@ -739,21 +759,22 @@ Status GETFileOpen(char *username, FILE **client_fp, fileSizeType *c_filesize, s
     struct fileInfo temp_info;
     fileSizeType offset;
 
-
+    printf("y\n");
     sprintf(temp_path, "./temp/%s.temp", username);
     sprintf(temp_info_path, "./temp/%s.temp.info", username);
-
+    printf("temp_path: %s\n", temp_path);
+    printf("temp_info_path: %s\n", temp_info_path);
     // open temp file
     *client_fp = fopen(temp_path, "ab+"); // 'a' is for breakpoint transportation
     if(*client_fp == NULL){
         errHandler("GETFileOpen", "fopen error", NO_EXIT);
         return MYERROR;
     }
-
+    printf("In GETFileOpen\n");
     GET_Cmd2fileInfo(username, &temp_info, &offset, command);
 
     *c_filesize = temp_info.filesize - offset;
-
+    printf("fileInfo: %s %s %u\n", temp_info.filename, temp_info.md5, temp_info.filesize);
     FILE *info_fp;
     info_fp = fopen(temp_info_path, "wb");
     if(info_fp == NULL){

@@ -8,7 +8,7 @@ const portType SERVER_MAIN_PORT = 10000;
 
 unsigned long nonblock = NONBLOCK;
 
-const char SERVER_IP[IP_LEN + 1] = "192.168.229.222"; // by default
+const char SERVER_IP[IP_LEN + 1] = "192.168.137.230"; // by default
 
 char UID[MD5_CHAR_LEN + 1] = {0};
 
@@ -21,6 +21,7 @@ const int WAIT_RESPONSE = 32;
 const int RESPONSE_Y = 64;
 const int RESPONSE_N = 128;
 const int F_INIT = 256;
+const int F_NEW = 512;
 /*
  * Function:
  *  use `ipconfig /all > ipconfig_tmp.dat`
@@ -418,7 +419,7 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
     struct protocolInfo command;
     struct protocolInfo server_cmd;
     while(1){
-        if((client_flag & STRATEGY_OK)) // here
+        if((client_flag & STRATEGY_OK))
             break;
         FD_ZERO(&rfd);
         FD_ZERO(&wfd);
@@ -452,6 +453,7 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
                     if(response[3] == 'Y'){
                         client_flag |= RESPONSE_Y;
                         client_flag &= ~RESPONSE_N;
+                        printf("receive Y\n");
                     }
                     else if(response[3] == 'N'){
                         client_flag |= RESPONSE_N;
@@ -476,24 +478,31 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
                 (client_flag & RESPONSE_N) || \
                (client_flag & F_INIT)){
                 client_flag &= ~F_INIT;
+                client_flag &= ~RESPONSE_N;
+                printf("-------go______\n");
                 len = fread(&command, sizeof(char), PROTOCOL_INFO_SIZE, strategy_fp);
+                printf("len: %d\n", len);
                 if(len == 0){
                     client_flag |= STRATEGY_OK;
                     continue;
                 }
                 if(command.message[0] == PRO_GET){
                     client_flag |= F_GET;
+                    client_flag &= ~F_GET_OK;
                     client_flag &= ~F_POST;
                 }
                 else if(command.message[0] == PRO_POST){
                     client_flag |= F_POST;
+                    client_flag &= ~F_GET_OK;
                     client_flag &= ~F_GET;
                 }
                 len = send(*CTRLsock_client, command.message, command.message_len, 0);
+                printf("command: %s\n", command.message);
                 if(len != command.message_len){
                     errMessage("send protocol - maybe incomplete...");
                 }
                 client_flag |= WAIT_RESPONSE;
+                client_flag |= F_NEW;
             }
         }
         if(FD_ISSET(*CTRLsock_server, &rfd)){ // server send GET or POST
@@ -502,6 +511,7 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
                (server_flag & RESPONSE_N) || \
                (server_flag & F_INIT)){
                 server_flag &= ~F_INIT;
+                server_flag &= ~RESPONSE_N;
                 len = recv(*CTRLsock_server, (char *)&server_cmd, PROTOCOL_INFO_SIZE, 0);
                 if(len == SOCKET_ERROR){
                     errHandler("Sync", "recv error", NO_EXIT);
@@ -511,12 +521,15 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
                 if(server_cmd.message[0] == PRO_GET){
                     server_flag |= F_GET;
                     server_flag &= ~F_POST;
+                    server_flag &= ~F_GET_OK;
                 }
                 else if(server_cmd.message[0] == PRO_POST){
                     server_flag |= F_POST;
                     server_flag &= ~F_GET;
+                    server_flag &= ~F_POST_OK;
                 }
                 server_flag |= WAIT_RESPONSE;
+                server_flag |= F_NEW;
             }
         }
         if(FD_ISSET(*CTRLsock_server, &wfd)){ // reply for server's GET or POST
@@ -549,8 +562,9 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
         }
         if(FD_ISSET(*DATAsock_server, &wfd)){ // data to server (server's GET)
             if((server_flag & RESPONSE_Y) && (server_flag & F_GET)){
-                if(server_flag & F_GET_OK){
-                    server_flag &= ~F_GET_OK;
+                if(server_flag & F_NEW){
+                    server_flag &= ~F_NEW;
+                    server_flag &= ~RESPONSE_Y;
                     if(GETFileOpen2Server(username, &server_fp, &s_filesize, &server_cmd, disc_base_path) == MYERROR){
                         errHandler("Sync", "GETFileOpen2Server error", NO_EXIT);
                         res = MYERROR;
@@ -574,25 +588,26 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
         }
         if(FD_ISSET(*DATAsock_client, &rfd)){ // data from server (client's GET)
             if((client_flag & RESPONSE_Y) && (client_flag & F_GET)){
-                if(client_flag & F_GET_OK){
-                    client_flag &= ~F_GET_OK;
+                printf("arrive here?\n");
+                if(client_flag & F_NEW){
+                    client_flag &= ~F_NEW;
+                    printf("flag\n");
                     if(GETFileOpen(username, &client_fp, &c_filesize, &command) == MYERROR){
                         errHandler("Sync", "GETFileOpen", NO_EXIT);
                         res = MYERROR;
                         goto Label_Sync_end;
                     }
+                    printf("GETFileOpen complete\n");
                     client_already = 0;
+                    printf("receive - begin\n");
                 }
-                len = recv(*DATAsock_client, client_slice, len, 0);
+                len = recv(*DATAsock_client, client_slice, SLICE_SIZE, 0);
                 if(len == SOCKET_ERROR){
                     errHandler("Sync", "recv error", NO_EXIT);
                     res = MYERROR;
                     goto Label_Sync_end;
                 }
-                len = fwrite(client_slice, sizeof(char), SLICE_SIZE, client_fp);
-                if(len != SLICE_SIZE){
-                    errMessage("Data written is incomplete...");
-                }
+                len = fwrite(client_slice, sizeof(char), len, client_fp);;
                 client_already += len;
                 if(client_already >= c_filesize){
                     fclose(client_fp);
@@ -602,11 +617,13 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
                         goto Label_Sync_end;
                     }
                     client_flag |= F_GET_OK; // finished
+                    client_flag &= ~RESPONSE_Y;
                 }
             }
         }
         if(FD_ISSET(DATAsock_client, &wfd)){ // data to server (client's POST)
             if((client_flag & RESPONSE_Y) && (client_flag & F_POST)){
+                printf("arrive here?\n");
                 if(client_flag & F_POST_OK){
                     client_flag &= ~F_POST_OK;
                     if(POSTFileOpen(username, &client_fp, &command, &c_filesize, disc_base_path) == MYERROR){
@@ -632,9 +649,10 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
         }
     }
 Label_Sync_end:
-    fclose(client_fp);
-    fclose(server_fp);
+//    fclose(client_fp);
+//    fclose(server_fp);
     fclose(strategy_fp);
+    printf("Sync - OK\n");
     return res;
 }
 
@@ -642,12 +660,13 @@ Status FlagInit(int *client_flag, int *server_flag)
 {
     *client_flag |= F_GET;
     *client_flag |= F_POST;
-    *client_flag |= F_INIT;
 //    *client_flag |= F_POST_OK;
 //    *client_flag |= F_GET_OK;
+    *client_flag |= F_INIT;
     *client_flag &= ~STRATEGY_OK; // important
     *client_flag &= ~RESPONSE_Y;
     *client_flag &= ~RESPONSE_N;
+    *client_flag &= ~F_NEW;
     *server_flag |= F_GET;
     *server_flag |= F_POST;
     *server_flag |= F_INIT;
@@ -655,6 +674,8 @@ Status FlagInit(int *client_flag, int *server_flag)
 //    *server_flag |= F_POST_OK;
     *server_flag &= ~RESPONSE_Y;
     *server_flag &= ~RESPONSE_N;
+    *server_flag &= ~F_NEW;
+
     return OK;
 }
 
