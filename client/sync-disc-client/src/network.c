@@ -8,7 +8,7 @@ const portType SERVER_MAIN_PORT = 10000;
 
 unsigned long nonblock = NONBLOCK;
 
-const char SERVER_IP[IP_LEN + 1] = "192.168.137.230"; // by default
+const char SERVER_IP[IP_LEN + 1] = "10.60.102.252"; // by default
 
 char UID[MD5_CHAR_LEN + 1] = {0};
 
@@ -364,6 +364,8 @@ Status InitSync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server
         return MYERROR;
     }
 
+    Log("Initial sync - Complete", username);
+
     return OK;
 }
 
@@ -493,7 +495,7 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
                 }
                 else if(command.message[0] == PRO_POST){
                     client_flag |= F_POST;
-                    client_flag &= ~F_GET_OK;
+                    client_flag &= ~F_POST_OK;
                     client_flag &= ~F_GET;
                 }
                 len = send(*CTRLsock_client, command.message, command.message_len, 0);
@@ -628,6 +630,7 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
                         res = MYERROR;
                         goto Label_Sync_end;
                     }
+                    printf("arrive here\n");
                     client_already = 0;
                 }
                 len = fread(client_slice, sizeof(char), SLICE_SIZE, client_fp);
@@ -638,7 +641,9 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
                     goto Label_Sync_end;
                 }
                 client_already += len;
+                SyncPrompt(username, PRO_POST, &client_already, &c_filesize, tempfile.filename);
                 if(client_already >= c_filesize){
+                    printf("one is ok\n");
                     fclose(client_fp);
                     client_flag |= F_POST_OK; // finished
                     client_flag &= ~RESPONSE_Y;
