@@ -51,6 +51,7 @@ Status WSAInit(WSADATA *wsaData)
 
 Status sockConfig(SOCKET *sClient, portType port)
 {
+    static int count = 1;
     // initialize WSA
 	WSADATA wsaData;
 	if (WSAInit(&wsaData) == MYERROR)
@@ -76,7 +77,6 @@ Status sockConfig(SOCKET *sClient, portType port)
 	fd_set wfd;
 	fd_set rfd;
 	int sel;
-	printf("connect?\n");
     if(connect(*sClient, (struct sockaddr *)&sin, sizeof(sin)) == SOCKET_ERROR){
         while(1){
             FD_ZERO(&wfd);
@@ -93,7 +93,8 @@ Status sockConfig(SOCKET *sClient, portType port)
                 break;
         }
     }
-    printf("connect-hello\n");
+    printf("\n+-------> Connect - Complete %d/4\n", count);
+    count++;
 	return OK;
 }
 
@@ -411,6 +412,8 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
     fileSizeType client_already;
     fileSizeType s_filesize;
     fileSizeType server_already;
+    struct fileInfo tempfile;
+    fileSizeType offset;
 // ------
     int sel;
     fd_set rfd;
@@ -453,7 +456,6 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
                     if(response[3] == 'Y'){
                         client_flag |= RESPONSE_Y;
                         client_flag &= ~RESPONSE_N;
-                        printf("receive Y\n");
                     }
                     else if(response[3] == 'N'){
                         client_flag |= RESPONSE_N;
@@ -479,9 +481,7 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
                (client_flag & F_INIT)){
                 client_flag &= ~F_INIT;
                 client_flag &= ~RESPONSE_N;
-                printf("-------go______\n");
                 len = fread(&command, sizeof(char), PROTOCOL_INFO_SIZE, strategy_fp);
-                printf("len: %d\n", len);
                 if(len == 0){
                     client_flag |= STRATEGY_OK;
                     continue;
@@ -497,10 +497,10 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
                     client_flag &= ~F_GET;
                 }
                 len = send(*CTRLsock_client, command.message, command.message_len, 0);
-                printf("command: %s\n", command.message);
                 if(len != command.message_len){
                     errMessage("send protocol - maybe incomplete...");
                 }
+                Log(command.message, username);
                 client_flag |= WAIT_RESPONSE;
                 client_flag |= F_NEW;
             }
@@ -588,18 +588,15 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
         }
         if(FD_ISSET(*DATAsock_client, &rfd)){ // data from server (client's GET)
             if((client_flag & RESPONSE_Y) && (client_flag & F_GET)){
-                printf("arrive here?\n");
                 if(client_flag & F_NEW){
                     client_flag &= ~F_NEW;
-                    printf("flag\n");
                     if(GETFileOpen(username, &client_fp, &c_filesize, &command) == MYERROR){
                         errHandler("Sync", "GETFileOpen", NO_EXIT);
                         res = MYERROR;
                         goto Label_Sync_end;
                     }
-                    printf("GETFileOpen complete\n");
+                    GET_Cmd2fileInfo(username, &tempfile, &offset, &command);
                     client_already = 0;
-                    printf("receive - begin\n");
                 }
                 len = recv(*DATAsock_client, client_slice, SLICE_SIZE, 0);
                 if(len == SOCKET_ERROR){
@@ -607,8 +604,9 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
                     res = MYERROR;
                     goto Label_Sync_end;
                 }
-                len = fwrite(client_slice, sizeof(char), len, client_fp);;
+                len = fwrite(client_slice, sizeof(char), len, client_fp);
                 client_already += len;
+                SyncPrompt(username, PRO_GET, &client_already, &c_filesize, tempfile.filename);
                 if(client_already >= c_filesize){
                     fclose(client_fp);
                     if(MyMoveFile(username, disc_base_path) == MYERROR){
@@ -623,10 +621,9 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
         }
         if(FD_ISSET(*DATAsock_client, &wfd)){ // data to server (client's POST)
             if((client_flag & RESPONSE_Y) && (client_flag & F_POST)){
-                printf("arrive here?\n");
                 if(client_flag & F_NEW){
                     client_flag &= ~F_NEW;
-                    if(POSTFileOpen(username, &client_fp, &command, &c_filesize, disc_base_path) == MYERROR){
+                    if(POSTFileOpen(username, &client_fp, &command, &c_filesize, disc_base_path, tempfile.filename) == MYERROR){
                         errHandler("Sync", "POSTFileOpen", NO_EXIT);
                         res = MYERROR;
                         goto Label_Sync_end;
@@ -653,7 +650,7 @@ Label_Sync_end:
 //    fclose(client_fp);
 //    fclose(server_fp);
     fclose(strategy_fp);
-    printf("Sync - OK\n");
+
     return res;
 }
 

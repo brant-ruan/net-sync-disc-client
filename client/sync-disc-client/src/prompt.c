@@ -44,3 +44,20 @@ void DiscDirPrompt(char* username)
     printf("\n+---------------------------------------------------------------+");
     printf("\n+-------> Welcome, %s :)\n", username);
 }
+
+Status SyncPrompt(char *username, char protocol, fileSizeType *client_already, fileSizeType *c_filesize, char *filename)
+{
+    system("cls");
+
+    printf("\n+---------------------------------------------------------------+");
+    printf("\n+                             Sync                              +");
+    printf("\n+---------------------------------------------------------------+");
+    if(protocol == PRO_GET){
+        printf("\n+--> GET - %s - %d/%d\n", filename, *client_already, *c_filesize);
+    }
+    else if (protocol == PRO_POST){
+        printf("\n+--> POST - %s - %d/%d\n", filename, *client_already, *c_filesize);
+    }
+
+    return OK;
+}

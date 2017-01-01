@@ -117,6 +117,7 @@ Status RTSync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, 
 Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, SOCKET *CTRLsock_server, \
             SOCKET *DATAsock_client, char *strategy_path, char *config_path);
 Status FlagInit(int *client_flag, int *server_flag);
+Status SyncPrompt(char *username, char protocol, fileSizeType *client_already, fileSizeType *c_filesize, char *filename);
 // -----
 Status Log(char *message, char *username);
 Status timeGen(char *time);
@@ -150,7 +151,7 @@ Status GETStrategy(char *username, FILE *local_fp, FILE *remote_fp, FILE *strate
 Status POSTStrategy(char *username, FILE *local_fp, FILE *remote_fp, FILE *strategy_fp);
 Status GenGET(char *username, struct protocolInfo *command, struct fileInfo *file_info, fileSizeType offset, FILE *strategy_fp);
 Status GenPOST(char *username, struct protocolInfo *command, struct fileInfo *file_info, FILE *strategy_fp);
-Status POSTFileOpen(char *username, FILE **client_fp, struct protocolInfo *command, fileSizeType *filesize, char *disc_base_path);
+Status POSTFileOpen(char *username, FILE **client_fp, struct protocolInfo *command, fileSizeType *filesize, char *disc_base_path, char *filename);
 Status GETFileOpen(char *username, FILE **client_fp, fileSizeType *c_filesize, struct protocolInfo *command);
 Status MyMoveFile(char *username, char *disc_base_path);
 Status GET_Cmd2fileInfo(char *username, struct fileInfo *temp_info, \
