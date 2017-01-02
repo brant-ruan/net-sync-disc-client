@@ -384,7 +384,7 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
     char temp;
     int k = 0;
     fseek(config_fp, strlen("LOCALDIR=N\n\nINITSYNC=N\n\nPATH="), SEEK_SET);
-    while((temp = fgetc(config_fp)) != EOF && temp != '\n')
+    while((temp = fgetc(config_fp)) != EOF && temp != '\n' && temp != '\0' )
         disc_base_path[k++] = temp;
     disc_base_path[k] = '\0';
     fclose(config_fp);

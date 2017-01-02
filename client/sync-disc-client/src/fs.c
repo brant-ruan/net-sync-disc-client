@@ -39,7 +39,6 @@ Status BindDir(char *username, char *config_path)
 {
     // \r\n will be handled as \n\n
     FILE *fp;
-    char opt;
     fp = fopen(config_path, "r+");
     char bind_path[BUF_SIZE] = {0};
     char flag[2] = {0};
@@ -55,7 +54,6 @@ Status BindDir(char *username, char *config_path)
     }
     fread(flag, sizeof(char), 1, fp);
     int len;
-Label_bind_dir:
     if(flag[0] != 'Y'){ // No bind-dir
         // ask user to input bind-dir
         printf("+-------> Bind Directory: ");
@@ -79,16 +77,6 @@ Label_bind_dir:
         }
         fwrite("Y", sizeof(char), 1, fp);
     }
-    else{
-        printf("+-------> Do you want to bind a new directory? (y/n): ");
-        opt = fgetc(stdin);
-        if(opt == 'Y' || opt == 'y'){
-            flag[0] = 'N';
-            fflush(stdin);
-            goto Label_bind_dir;
-        }
-    }
-
     // log
     Log("Bind or rebind - Complete", username);
 
@@ -104,17 +92,20 @@ Status DiscLockUp(FILE **lock_fp, char *config_path)
     int k = 0;
     fseek(config_fp, strlen("LOCALDIR=N\n\nINITSYNC=N\n\nPATH="), SEEK_SET);
     char disc_path[2 * BUF_SIZE] = {0};
-    while((temp = fgetc(config_fp)) != EOF && temp != '\n')
+    while((temp = fgetc(config_fp)) != EOF && temp != '\n' && temp != '\0'){
         disc_path[k++] = temp;
+    }
     disc_path[k] = '\0';
+    printf("disc_path: %s\n", disc_path);
     strcat(disc_path, "/DISC.LOCK");
-    unlink(disc_path);
+    printf("disc_path: %s\n", disc_path);
+//    unlink(disc_path);
     *lock_fp = fopen(disc_path, "w");
     if(*lock_fp == NULL){
         errHandler("DiscLockUp", "fopen error", NO_EXIT);
         return MYERROR;
     }
-
+    fclose(config_fp);
     return OK;
 }
 

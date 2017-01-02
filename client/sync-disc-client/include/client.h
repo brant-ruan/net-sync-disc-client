@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <io.h> // what is it?
 #include <windows.h>
+
 /* define */
 #define MYERROR         -1
 #define OK              0
@@ -62,7 +63,7 @@
 #define PRO_RENAME      'J'
 #define PRO_CHGDIR      'K' // change remote directory
 
-#define SLEEP_TIME      60
+#define SLEEP_TIME      60 * 1000
 /* typedef */
 typedef int Status;
 typedef unsigned short portType;
