@@ -10,7 +10,7 @@ Status MD5File(char *md5, char *filename)
 {
     unsigned char md5_num[MD5_NUM_LEN + 1] = {0};
 
-    FILE *fd=fopen(filename,"r");
+    FILE *fd=fopen(filename,"rb");
     MD5_CTX c;
     if(fd == NULL){
         errHandler("MD5Gen", "fopen failed", NO_EXIT);
