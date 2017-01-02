@@ -10,9 +10,9 @@
 #include <conio.h> // no such file on *nix
 #include <time.h>
 #include <winsock2.h>
+#include <unistd.h>
 #include <io.h> // what is it?
-//#include <windows.h>
-
+#include <windows.h>
 /* define */
 #define MYERROR         -1
 #define OK              0
@@ -62,6 +62,7 @@
 #define PRO_RENAME      'J'
 #define PRO_CHGDIR      'K' // change remote directory
 
+#define SLEEP_TIME      60
 /* typedef */
 typedef int Status;
 typedef unsigned short portType;

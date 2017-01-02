@@ -97,16 +97,19 @@ Label_begin:
         goto Label_end;
     }
 
-    if(ShowRemoteDir(username, &CTRLsock_client, &DATAsock_server, &CTRLsock_server, &DATAsock_client, remote_meta_path) == MYERROR){
-        errHandler("main", "ShowRemoteDir error", NO_EXIT);
-        goto Label_end;
-    }
+    while(1){
+        if(ShowRemoteDir(username, &CTRLsock_client, &DATAsock_server, &CTRLsock_server, &DATAsock_client, remote_meta_path) == MYERROR){
+            errHandler("main", "ShowRemoteDir error", NO_EXIT);
+            goto Label_end;
+        }
 
-    if(InitSync(username, &CTRLsock_client, &DATAsock_server, &CTRLsock_server, &DATAsock_client, config_path, remote_meta_path) == MYERROR){
-        errHandler("main", "InitSync error", NO_EXIT);
-        goto Label_end;
+        if(InitSync(username, &CTRLsock_client, &DATAsock_server, &CTRLsock_server, &DATAsock_client, config_path, remote_meta_path) == MYERROR){
+            errHandler("main", "InitSync error", NO_EXIT);
+            goto Label_end;
+        }
+        unlink(remote_meta_path);
+//        sleep(SLEEP_TIME);
     }
-
     /* real time sync */
     if(RTSync(username, &CTRLsock_client, &DATAsock_server, &CTRLsock_server, &DATAsock_client, config_path) == MYERROR){
     /* only when error happens RTSync return MYERROR,

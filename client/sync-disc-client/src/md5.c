@@ -39,7 +39,7 @@ Status MD5File(char *md5, char *filename)
     for(i = 0; i < MD5_NUM_LEN; i++){
         sprintf(&md5[2 * i], "%02x", md5_num[i]);
     }
-
+    Log(md5, filename);
     return OK;
 }
 

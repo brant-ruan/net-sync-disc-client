@@ -39,6 +39,7 @@ Status BindDir(char *username, char *config_path)
 {
     // \r\n will be handled as \n\n
     FILE *fp;
+    char opt;
     fp = fopen(config_path, "r+");
     char bind_path[BUF_SIZE] = {0};
     char flag[2] = {0};
@@ -54,9 +55,10 @@ Status BindDir(char *username, char *config_path)
     }
     fread(flag, sizeof(char), 1, fp);
     int len;
+Label_bind_dir:
     if(flag[0] != 'Y'){ // No bind-dir
         // ask user to input bind-dir
-        printf("+-------> Bind Dir: ");
+        printf("+-------> Bind Directory: ");
         fgets(bind_path, BUF_SIZE, stdin);
         len = strlen(bind_path);
         if(bind_path[len - 1] == '\n')
@@ -77,11 +79,18 @@ Status BindDir(char *username, char *config_path)
         }
         fwrite("Y", sizeof(char), 1, fp);
     }
+    else{
+        printf("+-------> Do you want to bind a new directory? (y/n): ");
+        opt = fgetc(stdin);
+        if(opt == 'Y' || opt == 'y'){
+            flag[0] = 'N';
+            fflush(stdin);
+            goto Label_bind_dir;
+        }
+    }
 
     // log
-    char message[2 * BUF_SIZE] = {0};
-    sprintf(message, "Bind local directory at: %s", bind_path);
-    Log(message, username);
+    Log("Bind or rebind - Complete", username);
 
     fclose(fp);
     return OK;

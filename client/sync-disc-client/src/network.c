@@ -456,10 +456,12 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
                 if(((client_flag & F_GET) && (response[0] == PRO_GET)) || \
                    ((client_flag & F_POST) && (response[0] == PRO_POST))){
                     if(response[3] == 'Y'){
+                        Log("server reponse - Y", username);
                         client_flag |= RESPONSE_Y;
                         client_flag &= ~RESPONSE_N;
                     }
                     else if(response[3] == 'N'){
+                        Log("server reponse - N", username);
                         client_flag |= RESPONSE_N;
                         client_flag &= ~RESPONSE_Y;
                     }
