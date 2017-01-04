@@ -120,7 +120,7 @@ Label_begin:
 
 Label_end:
     DiscLockDown(lock_fp);
-    unlink(remote_meta_path);
+//    unlink(remote_meta_path);
     closesocket(CTRLsock_client);
     closesocket(DATAsock_server);
     closesocket(CTRLsock_server);

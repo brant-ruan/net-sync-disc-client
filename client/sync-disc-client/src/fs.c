@@ -746,7 +746,7 @@ Status MyMoveFile(char *username, char *disc_base_path)
     sprintf(cmd, "move %s %s > nul", temp_path, real_path);
     system(cmd);
     Log(cmd, username); // Log
-
+    unlink(temp_path);
     unlink(temp_info_path);
     return OK;
 }
@@ -818,7 +818,8 @@ Status HaveSuchFile(char *username, struct protocolInfo *server_cmd, char *disc_
 
     char file_path[BUF_SIZE] = {0};
     strcpy(file_path, disc_base_path);
-    strcpy(file_path, myfile.filename);
+    strcat(file_path, myfile.filename);
+    printf("In Have SuchFile: %s\n", file_path);
     FILE *fp;
     fp = fopen(file_path, "r");
     if(fp == NULL){
@@ -839,15 +840,15 @@ Status GETFileOpen2Server(char *username, FILE **server_fp, fileSizeType *s_file
 
     char file_path[BUF_SIZE] = {0};
     strcpy(file_path, disc_base_path);
-    strcpy(file_path, myfile.filename);
-    *server_fp = fopen(file_path, "r");
+    strcat(file_path, myfile.filename);
+    *server_fp = fopen(file_path, "rb");
     if(*server_fp == NULL){
         errHandler("GETFileOpen2Server", "fopen error", NO_EXIT);
         return MYERROR; // do not have such file
     }
 
     *s_filesize = myfile.filesize - offset;
-
+    printf("offset: %u, filesize: %u\n", offset, *s_filesize);
     fseek(*server_fp, offset, SEEK_SET);
 
     return OK;
