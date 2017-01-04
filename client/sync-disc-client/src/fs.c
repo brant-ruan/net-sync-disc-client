@@ -819,7 +819,6 @@ Status HaveSuchFile(char *username, struct protocolInfo *server_cmd, char *disc_
     char file_path[BUF_SIZE] = {0};
     strcpy(file_path, disc_base_path);
     strcat(file_path, myfile.filename);
-    printf("In Have SuchFile: %s\n", file_path);
     FILE *fp;
     fp = fopen(file_path, "r");
     if(fp == NULL){
@@ -831,13 +830,13 @@ Status HaveSuchFile(char *username, struct protocolInfo *server_cmd, char *disc_
 }
 
 Status GETFileOpen2Server(char *username, FILE **server_fp, fileSizeType *s_filesize, \
-                          struct protocolInfo *server_cmd, char *disc_base_path)
+                          struct protocolInfo *server_cmd, char *disc_base_path, char *s_filename)
 {
     struct fileInfo myfile;
     fileSizeType offset;
 
     GET_Cmd2fileInfo(username, &myfile, &offset, server_cmd);
-
+    strcpy(s_filename, myfile.filename);
     char file_path[BUF_SIZE] = {0};
     strcpy(file_path, disc_base_path);
     strcat(file_path, myfile.filename);
@@ -848,7 +847,6 @@ Status GETFileOpen2Server(char *username, FILE **server_fp, fileSizeType *s_file
     }
 
     *s_filesize = myfile.filesize - offset;
-    printf("offset: %u, filesize: %u\n", offset, *s_filesize);
     fseek(*server_fp, offset, SEEK_SET);
 
     return OK;

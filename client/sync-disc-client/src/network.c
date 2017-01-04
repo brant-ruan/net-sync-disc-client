@@ -373,7 +373,6 @@ Status InitSync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server
 Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
             SOCKET *CTRLsock_server, SOCKET *DATAsock_client, char *strategy_path, char *config_path)
 {
-    printf("into Sync()\n");
 // ------
     FILE *config_fp;
     config_fp = fopen(config_path, "r");
@@ -417,17 +416,20 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
     fileSizeType server_already;
     struct fileInfo tempfile;
     fileSizeType offset;
+    char s_filename[BUF_SIZE] = {0};
 // ------
     int sel;
     fd_set rfd;
     fd_set wfd;
     int len;
+    int while_c = 0;
+    int while_stop = 0;
     struct protocolInfo command;
     struct protocolInfo server_cmd;
     while(1){
         if((client_flag & STRATEGY_OK) && (server_flag & STRATEGY_OK))
             break;
-        if(while_c == 500){
+        if(while_c == 500 && while_stop == 0){
             server_flag |= STRATEGY_OK; // wait for server for up to 500 times
         }
         while_c++;
@@ -503,6 +505,7 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
                 }
                 server_flag |= WAIT_RESPONSE;
                 server_flag |= F_NEW;
+                while_stop = 1; // no stop
             }
         }
         if(FD_ISSET(*CTRLsock_client, &wfd)){ // client sends GET or POST
@@ -545,7 +548,6 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
             if(server_flag & WAIT_RESPONSE){
                 server_flag &= ~WAIT_RESPONSE;
                 if(server_cmd.message[0] == PRO_GET){
-                    printf("server_cmd == PRO_GET\n");
                     Status test_res = HaveSuchFile(username, &server_cmd, disc_base_path);
                     if(test_res == MYERROR){
                         errHandler("Sync", "HaveSuchFile error", NO_EXIT);
@@ -553,7 +555,6 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
                         goto Label_Sync_end;
                     }
                     if(test_res == YES){
-                        printf("YES\n");
                         len = send(*CTRLsock_server, "G\r\nY\r\n\r\n", strlen("G\r\nY\r\n\r\n"), 0);
                         if(len == SOCKET_ERROR){
                             errHandler("Sync", "send error", NO_EXIT);
@@ -564,7 +565,6 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
                         server_flag &= ~RESPONSE_N;
                     }
                     else{
-                        printf("NO\n");
                         len = send(*CTRLsock_server, "G\r\nN\r\n\r\n", strlen("G\r\nN\r\n\r\n"), 0);
                         if(len == SOCKET_ERROR){
                             errHandler("Sync", "send error", NO_EXIT);
@@ -589,7 +589,7 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
             if((server_flag & RESPONSE_Y) && (server_flag & F_GET)){
                 if(server_flag & F_NEW){
                     server_flag &= ~F_NEW;
-                    if(GETFileOpen2Server(username, &server_fp, &s_filesize, &server_cmd, disc_base_path) == MYERROR){
+                    if(GETFileOpen2Server(username, &server_fp, &s_filesize, &server_cmd, disc_base_path, s_filename) == MYERROR){
                         errHandler("Sync", "GETFileOpen2Server error", NO_EXIT);
                         res = MYERROR;
                         goto Label_Sync_end;
@@ -606,6 +606,7 @@ Status Sync(char *username, SOCKET *CTRLsock_client, SOCKET *DATAsock_server, \
                     goto Label_Sync_end;
                 }
                 server_already += len;
+                SyncPrompt(username, PRO_POST, &server_already, &s_filesize, s_filename);
                 if(server_already >= s_filesize){
                     fclose(server_fp);
                     server_flag |= F_GET_OK;
