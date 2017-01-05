@@ -8,7 +8,7 @@ const portType SERVER_MAIN_PORT = 10000;
 
 unsigned long nonblock = NONBLOCK;
 
-const char SERVER_IP[IP_LEN + 1] = "10.60.102.252"; // by default
+const char SERVER_IP[IP_LEN + 1] = "192.168.1.254"; // by default
 
 char UID[MD5_CHAR_LEN + 1] = {0};
 
